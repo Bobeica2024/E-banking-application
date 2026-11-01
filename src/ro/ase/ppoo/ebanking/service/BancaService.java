@@ -164,6 +164,32 @@ public class BancaService {
         }
     }
 
+    /**
+     * Inregistreaza o tranzactie citita din fisier de persistenta sau backup.
+     * @param tranzactie tranzactia de adaugat
+     */
+    public void incarcaTranzactieDinFisier(Tranzactie tranzactie) {
+        if (tranzactie != null) {
+            tranzactiiList.add(tranzactie);
+            actualizeazaMatriceStatistica(tranzactie);
+        }
+    }
+
+    /**
+     * Reseteaza toate datele din memorie (utilizata la restaurarea unui backup).
+     */
+    public void golesteDateleDinMemorie() {
+        conturiMap.clear();
+        tranzactiiList.clear();
+        clientiSet.clear();
+        for (int i = 0; i < 12; i++) {
+            for (int j = 0; j < 4; j++) {
+                matriceStatisticaLunara[i][j] = 0.0;
+                matriceNumarTranzactii[i][j] = 0;
+            }
+        }
+    }
+
     public void deschideCont(String iban, Client client, TipCont tipCont, Moneda moneda, double soldInitial)
             throws TranzactieInvalidaException, FormatDateIncorectException {
 
