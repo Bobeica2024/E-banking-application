@@ -1,5 +1,6 @@
 @echo off
 setlocal
+chcp 65001 >nul
 echo ===================================================
 echo [PPOO] Rulare Suita de Teste Automate E-Banking...
 echo ===================================================

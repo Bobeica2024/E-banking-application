@@ -9,6 +9,8 @@ import ro.ase.ppoo.ebanking.ui.MeniuConsola;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Punctul principal de intrare (entry-point) in aplicatia de e-banking.
@@ -27,6 +29,12 @@ public class Main {
     private static final String FISIER_RAPORT = DATA_DIR + File.separator + "raport_statistici.txt";
 
     public static void main(String[] args) {
+        try {
+            System.setOut(new PrintStream(System.out, true, StandardCharsets.UTF_8));
+            System.setErr(new PrintStream(System.err, true, StandardCharsets.UTF_8));
+        } catch (Exception ignored) {
+        }
+
         afiseazaBannerPornire();
 
         BancaService bancaService = new BancaService();
@@ -36,25 +44,25 @@ public class Main {
 
         // 1. Incarcare date initiale din fisiere (Cerinta 1, 2)
         try {
-            System.out.println("[INIT] Se incarca datele conturilor din '" + FISIER_CONTURI + "'...");
+            System.out.println("[INIT] Se încarcă datele conturilor din '" + FISIER_CONTURI + "'...");
             csvStorage.incarcaConturi(FISIER_CONTURI, bancaService);
-            System.out.printf("[INIT] Incarcare finalizata: %d conturi incarcate in memorie.\n", bancaService.getToateConturile().size());
+            System.out.printf("[INIT] Încărcare finalizată: %d conturi încărcate în memorie.\n", bancaService.getToateConturile().size());
 
-            System.out.println("[INIT] Se incarca istoricul tranzactiilor din '" + FISIER_TRANZACTII + "'...");
+            System.out.println("[INIT] Se încarcă istoricul tranzacțiilor din '" + FISIER_TRANZACTII + "'...");
             csvStorage.incarcaTranzactii(FISIER_TRANZACTII, bancaService);
-            System.out.printf("[INIT] Incarcare finalizata: %d tranzactii incarcate in memorie.\n", bancaService.getToateTranzactiile().size());
+            System.out.printf("[INIT] Încărcare finalizată: %d tranzacții încărcate în memorie.\n", bancaService.getToateTranzactiile().size());
 
             bancaService.recalculeazaMatriciStatistice();
-            System.out.println("[INIT] Matricea statistica fundamentala a fost initializata cu succes.");
+            System.out.println("[INIT] Matricea statistică fundamentală a fost inițializată cu succes.");
         } catch (IOException | FormatDateIncorectException e) {
-            System.err.println("[AVERTISMENT LA INITIALIZARE] " + e.getMessage());
-            System.out.println("[INIT] Se continua pornirea aplicatiei cu starea existenta.");
+            System.err.println("[AVERTISMENT LA INIȚIALIZARE] " + e.getMessage());
+            System.out.println("[INIT] Se continuă pornirea aplicației cu starea existentă.");
         }
 
         // 2. Inregistrare Shutdown Hook pentru salvare automata garantata in caz de oprire fortata (Cerinta 2, 4)
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             try {
-                System.out.println("\n[SHUTDOWN-HOOK] Asigurare persistenta date la inchidere...");
+                System.out.println("\n[SHUTDOWN-HOOK] Asigurare persistență date la închidere...");
                 csvStorage.salveazaConturi(FISIER_CONTURI, bancaService.getToateConturile());
                 csvStorage.salveazaTranzactii(FISIER_TRANZACTII, bancaService.getToateTranzactiile());
                 System.out.println("[SHUTDOWN-HOOK] Datele au fost salvate pe disc.");
@@ -73,8 +81,8 @@ public class Main {
     private static void afiseazaBannerPornire() {
         System.out.println("**************************************************************************");
         System.out.println("*              PROIECT PPOO - SISTEM E-BANKING JAVA (MASTERAT)           *");
-        System.out.println("*                  Tema 1: Gestiunea Tranzactiilor Bancare               *");
-        System.out.println("*              Persistenta Fisiere | Matrici & Colectii | Validari       *");
+        System.out.println("*                  Tema 1: Gestiunea Tranzacțiilor Bancare               *");
+        System.out.println("*              Persistență Fișiere | Matrice & Colecții | Validări       *");
         System.out.println("**************************************************************************\n");
     }
 }

@@ -135,9 +135,9 @@ public class DocxExporter {
         pNormal(sb, "• Cerința 2 (1 p) - Mecanism salvare/restaurare la închidere/relansare: Datele modificate în memorie sunt rescrise pe disc la oprirea aplicației sau prin Shutdown Hook.");
         pNormal(sb, "• Cerința 3 (1 p) - Masive fundamentale și colecții: Vector 1D double[] rateSchimbValutar, matrice 2D double[][] matriceStatisticaLunara (12 luni x 4 tipuri tranzacții), plus 3 colecții de obiecte (Map<String, ContBancar>, List<Tranzactie>, Set<Client>).");
         pNormal(sb, "• Cerința 4 (1 p) - Modificări exclusiv în memorie: Operațiunile tranzacționale modifică starea obiectelor din RAM, iar persistența se declanșează strict la ieșirea din aplicație.");
-        pNormal(sb, "• Cerința 5 (1 p) - Validare date și mecanism de excepții: Ierarhie proprie derivată din BancarException (FonduriInsuficienteException, ContBlocatException, ContInexistentException, TranzactieInvalidaException, FormatDateIncorectException) și validări defensive.");
+        pNormal(sb, "• Cerința 5 (1 p) - Validare date și mecanism de excepții: Ierarhie proprie derivată din BancarException (FonduriInsuficienteException, ContBlocatException, ContInexistentException, TranzactieInvalidaException, FormatDateIncorectException, OperatiuneAnulataException) și validări defensive în buclă cu feedback imediat și opțiune de anulare prin tasta '0'.");
         pNormal(sb, "• Cerința 6 (1 p) - Flux funcțional logic: Încărcare automată din CSV -> Inițializare matrici -> Rulare meniu interactiv -> Salvare sincronizată la închidere.");
-        pNormal(sb, "• Cerința 7 (1 p) - Meniu interactiv clar: Consolă CLI structurată pe 12 opțiuni operaționale + opțiunea 0 de salvare și părăsire sistem.");
+        pNormal(sb, "• Cerința 7 (1 p) - Meniu interactiv clar: Consolă CLI structurată pe 13 opțiuni operaționale (inclusiv comutare bilingvă) + opțiunea 0 de salvare și părăsire sistem, oferind validare în timp real a datelor și suport complet pentru limba Română cu diacritice oficiale și limba Engleză.");
         pNormal(sb, "• Cerința 8 (1 p) - Proiect funcțional fără erori: Compilare Java 21 fără avertismente (-Xlint:all) și suită de teste automate cu 100% rată de succes.");
         pNormal(sb, "• Cerința 9 (1 p) - Documentație Word și JavaDoc: Documentație completă DOCX și pachet JavaDoc HTML generat în docs/javadoc/.");
         pNormal(sb, "• Cerința 10 (1 p) - Punct din oficiu.");
@@ -145,11 +145,12 @@ public class DocxExporter {
         // 3. Arhitectura
         pHeading1(sb, "3. Structura Pachetelor și Arhitectura Claselor");
         pNormal(sb, "1. ro.ase.ppoo.ebanking.model: Cuprinde entitățile Client, ContBancar, Tranzactie și enumerările TipCont, TipTranzactie, Moneda, StatusTranzactie. Clasele implementează Serializable și Comparable.");
-        pNormal(sb, "2. ro.ase.ppoo.ebanking.exception: Cuprinde clasa de bază BancarException și excepțiile specifice pentru fonduri insuficiente, conturi inexistente, formate incorecte și reguli bancare.");
-        pNormal(sb, "3. ro.ase.ppoo.ebanking.service: Clasa BancaService gestionează memoria aplicației, vectorul 1D de rate valutare, matricea 2D de activitate financiară și operațiile tranzacționale.");
+        pNormal(sb, "2. ro.ase.ppoo.ebanking.exception: Cuprinde clasa de bază BancarException și excepțiile specifice pentru fonduri insuficiente, conturi inexistente, formate incorecte, anulare operațiuni și reguli bancare.");
+        pNormal(sb, "3. ro.ase.ppoo.ebanking.service: Clasa BancaService gestionează memoria aplicației, vectorul 1D de rate valutare, matricea 2D de activitate financiară, registrul internațional IBAN și operațiile tranzacționale.");
         pNormal(sb, "4. ro.ase.ppoo.ebanking.storage: Cuprinde CsvStorage pentru persistenta text, BinaryStorage pentru serializare binară de securitate și RaportGenerator pentru rapoarte de analiză.");
-        pNormal(sb, "5. ro.ase.ppoo.ebanking.ui: Clasa MeniuConsola gestionează meniul principal și validarea inputului.");
-        pNormal(sb, "6. ro.ase.ppoo.ebanking: Clasa Main (punctul de pornire) și BancaTest (suita de testare).");
+        pNormal(sb, "5. ro.ase.ppoo.ebanking.i18n: Pachet de internaționalizare ce include clasa I18n și enumerarea Limba, asigurând suport bilingv complet (Română cu diacritice și Engleză).");
+        pNormal(sb, "6. ro.ase.ppoo.ebanking.ui: Clasa MeniuConsola gestionează meniul principal, validarea defensivă a inputului și navigarea utilizatorului.");
+        pNormal(sb, "7. ro.ase.ppoo.ebanking: Clasa Main (punctul de pornire) și BancaTest (suita de testare).");
 
         // 4. Masive fundamentale și colecții
         pHeading1(sb, "4. Masive Fundamentale și Colecții OOP");

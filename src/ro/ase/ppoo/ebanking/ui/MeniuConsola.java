@@ -1,7 +1,11 @@
 package ro.ase.ppoo.ebanking.ui;
 
 import ro.ase.ppoo.ebanking.exception.BancarException;
+import ro.ase.ppoo.ebanking.exception.ContInexistentException;
 import ro.ase.ppoo.ebanking.exception.FormatDateIncorectException;
+import ro.ase.ppoo.ebanking.exception.OperatiuneAnulataException;
+import ro.ase.ppoo.ebanking.i18n.I18n;
+import ro.ase.ppoo.ebanking.i18n.Limba;
 import ro.ase.ppoo.ebanking.model.*;
 import ro.ase.ppoo.ebanking.service.BancaService;
 import ro.ase.ppoo.ebanking.storage.BinaryStorage;
@@ -14,8 +18,9 @@ import java.time.format.TextStyle;
 import java.util.*;
 
 /**
- * Interfata interactiva de tip consola pentru sistemul de e-banking.
- * Asigura meniul utilizatorului, validarea inputului si apelul metodelor din service.
+ * Interfața interactivă de tip consolă pentru sistemul de e-banking.
+ * Oferă suport bilingv (Română cu diacritice complete și Engleză),
+ * validare defensivă imediată a inputului cu reîncercare sau anulare prin tasta '0'.
  */
 public class MeniuConsola {
 
@@ -47,12 +52,12 @@ public class MeniuConsola {
     }
 
     /**
-     * Porneste ciclul de interactiune cu utilizatorul prin consola.
+     * Pornește ciclul de interacțiune cu utilizatorul prin consolă.
      */
     public void porneste() {
         while (aplicatieRuland) {
             afiseazaMeniuPrincipal();
-            int optiune = citesteInt("Selectati optiunea dorita: ", 0, 12);
+            int optiune = citesteInt(I18n.t("PROMPT_SELECT_OPT"), 0, 13);
             System.out.println();
 
             try {
@@ -69,16 +74,19 @@ public class MeniuConsola {
                     case 10 -> optiuneExportBackupBinar();
                     case 11 -> optiuneRestaurareBackupBinar();
                     case 12 -> optiuneBlocareDeblocareCont();
+                    case 13 -> optiuneSchimbareLimba();
                     case 0 -> optiuneSalvareSiIesire();
                 }
+            } catch (OperatiuneAnulataException ex) {
+                System.out.println("\n" + I18n.t("STATUS_CANCELLED_HEADER") + ex.getMessage());
             } catch (BancarException ex) {
-                System.err.println("[EROARE BANCARA] " + ex.getMessage());
+                System.err.println("\n" + I18n.t("ERR_BANKING_HEADER") + ex.getMessage());
             } catch (Exception ex) {
-                System.err.println("[EROARE DE SISTEM] A aparut o eroare neasteptata: " + ex.getMessage());
+                System.err.println("\n" + I18n.t("ERR_SYSTEM_HEADER") + ex.getMessage());
             }
 
             if (aplicatieRuland) {
-                System.out.println("\nApasati ENTER pentru a reveni la meniul principal...");
+                System.out.println("\n" + I18n.t("PRESS_ENTER"));
                 scanner.nextLine();
             }
         }
@@ -86,29 +94,30 @@ public class MeniuConsola {
 
     private void afiseazaMeniuPrincipal() {
         System.out.println("==========================================================================");
-        System.out.println("                   SISTEM E-BANKING PPOO - MENIU PRINCIPAL                ");
+        System.out.printf("                   %s                \n", I18n.t("MENU_TITLE"));
         System.out.println("==========================================================================");
-        System.out.println("  1. Vizualizare lista conturi bancare si solduri");
-        System.out.println("  2. Deschidere cont bancar nou");
-        System.out.println("  3. Depunere numerar");
-        System.out.println("  4. Retragere numerar");
-        System.out.println("  5. Transfer bancar interconturi (cu conversie valutara)");
-        System.out.println("  6. Plata factura utilitati");
-        System.out.println("  7. Istoric tranzactii (global sau filtrat dupa IBAN)");
-        System.out.println("  8. Vizualizare statistici lunare (Matrice 2D fundamentala)");
-        System.out.println("  9. Generare raport statistic in fisier text");
-        System.out.println(" 10. Salvare copie de siguranta binara (Backup .dat)");
-        System.out.println(" 11. Restaurare baza de date din backup binar");
-        System.out.println(" 12. Blocare / Deblocare cont bancar");
-        System.out.println("  0. Salvare date in fisiere si Iesire din aplicatie");
+        System.out.println("  " + I18n.t("OPT_1"));
+        System.out.println("  " + I18n.t("OPT_2"));
+        System.out.println("  " + I18n.t("OPT_3"));
+        System.out.println("  " + I18n.t("OPT_4"));
+        System.out.println("  " + I18n.t("OPT_5"));
+        System.out.println("  " + I18n.t("OPT_6"));
+        System.out.println("  " + I18n.t("OPT_7"));
+        System.out.println("  " + I18n.t("OPT_8"));
+        System.out.println("  " + I18n.t("OPT_9"));
+        System.out.println(" " + I18n.t("OPT_10"));
+        System.out.println(" " + I18n.t("OPT_11"));
+        System.out.println(" " + I18n.t("OPT_12"));
+        System.out.println(" " + I18n.t("OPT_13"));
+        System.out.println(" " + I18n.t("OPT_0"));
         System.out.println("==========================================================================");
     }
 
     private void optiuneAfisareConturi() {
-        System.out.println("--- LISTA CONTURI BANCARE INREGISTRATE ---");
+        System.out.println(I18n.t("ACCOUNTS_TITLE"));
         Collection<ContBancar> conturi = bancaService.getToateConturile();
         if (conturi.isEmpty()) {
-            System.out.println("Nu exista niciun cont inregistrat in sistem.");
+            System.out.println(I18n.t("NO_ACCOUNTS"));
             return;
         }
 
@@ -121,125 +130,140 @@ public class MeniuConsola {
         }
 
         System.out.println("--------------------------------------------------------------------------");
-        System.out.printf("Total fonduri banca (echivalent RON): %,12.2f lei\n", bancaService.calculeazaTotalFonduri(Moneda.RON));
-        System.out.printf("Total fonduri banca (echivalent EUR): %,12.2f €\n", bancaService.calculeazaTotalFonduri(Moneda.EUR));
+        System.out.print(I18n.t("TOTAL_FUNDS_RON", bancaService.calculeazaTotalFonduri(Moneda.RON)));
+        System.out.print(I18n.t("TOTAL_FUNDS_EUR", bancaService.calculeazaTotalFonduri(Moneda.EUR)));
     }
 
     private void optiuneDeschidereCont() throws BancarException {
-        System.out.println("--- DESCHIDERE CONT BANCAR NOU ---");
-        String iban = citesteSir("Introduceti IBAN-ul (ex: RO12BTRLRONCRT...): ").toUpperCase();
-        String nume = citesteSir("Nume si prenume titular: ");
-        String cnp = citesteSir("CNP titular (13 cifre): ");
-        String email = citesteSir("Adresa email: ");
-        String telefon = citesteSir("Numar telefon: ");
+        System.out.println(I18n.t("OPEN_ACC_TITLE"));
+        System.out.println(I18n.t("CANCEL_NOTE"));
+
+        String iban = citesteIbanNou(I18n.t("PROMPT_IBAN_NEW"));
+        String nume = citesteNume(I18n.t("PROMPT_HOLDER_NAME"));
+        String cnp = citesteCnp(I18n.t("PROMPT_CNP"));
+        String email = citesteEmail(I18n.t("PROMPT_EMAIL"));
+        String telefon = citesteTelefon(I18n.t("PROMPT_PHONE"));
 
         TipCont tipCont = citesteTipCont();
         Moneda moneda = citesteMoneda();
-        double soldInitial = citesteDouble("Sold initial depus (minim 0): ");
+        double soldInitial = citesteSoldInitial(I18n.t("PROMPT_INIT_BALANCE"));
 
         Client client = new Client("CLI-" + (cnp.length() >= 4 ? cnp.substring(cnp.length() - 4) : "NEW"), nume, cnp, email, telefon);
         bancaService.deschideCont(iban, client, tipCont, moneda, soldInitial);
 
-        System.out.println("[SUCCES] Contul a fost deschis cu succes in memorie pentru " + nume + "!");
+        System.out.print(I18n.t("SUCCESS_OPEN_ACC", nume, iban, tipCont.name(), moneda.name(), soldInitial, moneda.name()));
     }
 
     private void optiuneDepunere() throws BancarException {
-        System.out.println("--- DEPUNERE NUMERAR ---");
-        String iban = citesteSir("Introduceti IBAN-ul contului: ").toUpperCase();
-        double suma = citesteDouble("Suma de depus: ");
-        String descriere = citesteSir("Detalii / Descriere depunere: ");
+        System.out.println(I18n.t("DEPOSIT_TITLE"));
+        System.out.println(I18n.t("CANCEL_NOTE"));
 
-        Tranzactie trx = bancaService.efectueazaDepunere(iban, suma, descriere);
-        ContBancar cont = bancaService.gasesteCont(iban);
+        ContBancar cont = citesteIbanExistent(I18n.t("PROMPT_IBAN_ACCOUNT"), true);
+        double suma = citesteSumaDepunere(I18n.t("PROMPT_AMOUNT_DEPOSIT"));
+        String descriere = citesteDescriereOptionala(I18n.t("PROMPT_DESC_DEPOSIT"), I18n.t("DEFAULT_DESC_DEPOSIT"));
 
-        System.out.println("[SUCCES] Depunere finalizata!");
-        System.out.printf("Tranzactie ID: %s | Sold actual: %.2f %s\n",
-                trx.getIdTranzactie(), cont.getSold(), cont.getMoneda().name());
+        Tranzactie trx = bancaService.efectueazaDepunere(cont.getIban(), suma, descriere);
+
+        System.out.print(I18n.t("SUCCESS_DEPOSIT", trx.getIdTranzactie(), suma, cont.getMoneda().name(), cont.getSold(), cont.getMoneda().name()));
     }
 
     private void optiuneRetragere() throws BancarException {
-        System.out.println("--- RETRAGERE NUMERAR ---");
-        String iban = citesteSir("Introduceti IBAN-ul contului: ").toUpperCase();
-        double suma = citesteDouble("Suma de retras: ");
-        String descriere = citesteSir("Detalii / Descriere retragere: ");
+        System.out.println(I18n.t("WITHDRAW_TITLE"));
+        System.out.println(I18n.t("CANCEL_NOTE"));
 
-        Tranzactie trx = bancaService.efectueazaRetragere(iban, suma, descriere);
-        ContBancar cont = bancaService.gasesteCont(iban);
+        ContBancar cont = citesteIbanExistent(I18n.t("PROMPT_IBAN_ACCOUNT"), true);
+        double suma = citesteSumaRetragere(cont, I18n.t("PROMPT_AMOUNT_WITHDRAW"));
+        String descriere = citesteDescriereOptionala(I18n.t("PROMPT_DESC_WITHDRAW"), I18n.t("DEFAULT_DESC_WITHDRAW"));
 
-        System.out.println("[SUCCES] Retragere finalizata!");
-        System.out.printf("Tranzactie ID: %s | Comision: %.2f | Sold ramas: %.2f %s\n",
-                trx.getIdTranzactie(), trx.getComision(), cont.getSold(), cont.getMoneda().name());
+        Tranzactie trx = bancaService.efectueazaRetragere(cont.getIban(), suma, descriere);
+
+        System.out.print(I18n.t("SUCCESS_WITHDRAW", trx.getIdTranzactie(), suma, cont.getMoneda().name(), trx.getComision(), cont.getMoneda().name(), cont.getSold(), cont.getMoneda().name()));
     }
 
     private void optiuneTransfer() throws BancarException {
-        System.out.println("--- TRANSFER BANCAR INTERCONTURI ---");
-        String ibanSursa = citesteSir("IBAN cont debitor (Sursa): ").toUpperCase();
-        String ibanDestinatie = citesteSir("IBAN cont creditor (Destinatie): ").toUpperCase();
-        double suma = citesteDouble("Suma de transferat: ");
-        String descriere = citesteSir("Detalii transfer: ");
+        System.out.println(I18n.t("TRANSFER_TITLE"));
+        System.out.println(I18n.t("CANCEL_NOTE"));
 
-        Tranzactie trx = bancaService.efectueazaTransfer(ibanSursa, ibanDestinatie, suma, descriere);
-        ContBancar sursa = bancaService.gasesteCont(ibanSursa);
-        ContBancar dest = bancaService.gasesteCont(ibanDestinatie);
+        ContBancar contSursa = citesteIbanExistent(I18n.t("PROMPT_IBAN_SOURCE"), true);
 
-        System.out.println("[SUCCES] Transfer bancar procesat!");
-        System.out.printf("Tranzactie: %s | Comision: %.2f %s\n", trx.getIdTranzactie(), trx.getComision(), sursa.getMoneda().name());
-        System.out.printf("Sold cont sursa: %.2f %s | Sold cont destinatie: %.2f %s\n",
-                sursa.getSold(), sursa.getMoneda().name(), dest.getSold(), dest.getMoneda().name());
+        ContBancar contDest;
+        while (true) {
+            contDest = citesteIbanExistent(I18n.t("PROMPT_IBAN_DEST"), true);
+            if (contSursa.getIban().equalsIgnoreCase(contDest.getIban())) {
+                System.out.print(I18n.t("ERR_SAME_ACCOUNT"));
+                continue;
+            }
+            break;
+        }
+
+        double suma = citesteSumaTransfer(contSursa, I18n.t("PROMPT_AMOUNT_TRANSFER", contSursa.getMoneda().name()));
+        String descriere = citesteDescriereOptionala(I18n.t("PROMPT_DESC_TRANSFER"), I18n.t("DEFAULT_DESC_TRANSFER"));
+
+        Tranzactie trx = bancaService.efectueazaTransfer(contSursa.getIban(), contDest.getIban(), suma, descriere);
+
+        System.out.print(I18n.t("SUCCESS_TRANSFER", trx.getIdTranzactie(), trx.getComision(), contSursa.getMoneda().name(),
+                contSursa.getIban(), contSursa.getSold(), contSursa.getMoneda().name(),
+                contDest.getIban(), contDest.getSold(), contDest.getMoneda().name()));
     }
 
     private void optiunePlataFactura() throws BancarException {
-        System.out.println("--- PLATA FACTURA UTILITATI ---");
-        String iban = citesteSir("IBAN cont platitor: ").toUpperCase();
-        String furnizor = citesteSir("Denumire furnizor (ex: Enel, Digi, Engie): ");
-        String nrFactura = citesteSir("Numar factura: ");
-        double suma = citesteDouble("Suma facturii: ");
+        System.out.println(I18n.t("BILL_TITLE"));
+        System.out.println(I18n.t("CANCEL_NOTE"));
 
-        Tranzactie trx = bancaService.efectueazaPlataFactura(iban, furnizor, suma, nrFactura);
-        ContBancar cont = bancaService.gasesteCont(iban);
+        ContBancar cont = citesteIbanExistent(I18n.t("PROMPT_IBAN_PAYER"), true);
+        String furnizor = citesteSirObligatoriu(I18n.t("PROMPT_PROVIDER"));
+        String nrFactura = citesteSirObligatoriu(I18n.t("PROMPT_BILL_NUM"));
+        double suma = citesteSumaFactura(cont, I18n.t("PROMPT_BILL_AMOUNT"));
 
-        System.out.println("[SUCCES] Factura a fost achitata!");
-        System.out.printf("ID Tranzactie: %s | Sold ramas: %.2f %s\n", trx.getIdTranzactie(), cont.getSold(), cont.getMoneda().name());
+        Tranzactie trx = bancaService.efectueazaPlataFactura(cont.getIban(), furnizor, suma, nrFactura);
+
+        System.out.print(I18n.t("SUCCESS_BILL", trx.getIdTranzactie(), furnizor, suma, cont.getMoneda().name(), cont.getSold(), cont.getMoneda().name()));
     }
 
-    private void optiuneIstoricTranzactii() {
-        System.out.println("--- ISTORIC TRANZACTII BANCAR ---");
-        System.out.println("1. Afisare toate tranzactiile din sistem");
-        System.out.println("2. Filtrare tranzactii dupa un IBAN");
-        int opt = citesteInt("Selectati modul de afisare (1/2): ", 1, 2);
+    private void optiuneIstoricTranzactii() throws OperatiuneAnulataException {
+        System.out.println(I18n.t("HISTORY_TITLE"));
+        System.out.println(I18n.t("HISTORY_OPT_ALL"));
+        System.out.println(I18n.t("HISTORY_OPT_FILTER"));
+        System.out.println(I18n.t("HISTORY_OPT_CANCEL"));
+        int opt = citesteInt(I18n.t("PROMPT_HISTORY_MODE"), 0, 2);
+
+        if (opt == 0) {
+            throw new OperatiuneAnulataException(I18n.t("HISTORY_CANCELLED"));
+        }
 
         List<Tranzactie> lista;
         if (opt == 1) {
             lista = new ArrayList<>(bancaService.getToateTranzactiile());
             Collections.sort(lista);
         } else {
-            String iban = citesteSir("Introduceti IBAN-ul pentru filtrare: ").toUpperCase();
-            lista = bancaService.filtreazaTranzactiiCont(iban);
+            ContBancar cont = citesteIbanExistent(I18n.t("PROMPT_IBAN_FILTER"), false);
+            lista = bancaService.filtreazaTranzactiiCont(cont.getIban());
         }
 
         if (lista.isEmpty()) {
-            System.out.println("Nu exista tranzactii inregistrate pentru criteriul selectat.");
+            System.out.println(I18n.t("NO_TRANSACTIONS"));
             return;
         }
 
-        System.out.println("\nRezultate (" + lista.size() + " tranzactii):");
+        System.out.printf(I18n.t("HISTORY_RESULTS", lista.size()));
         for (Tranzactie t : lista) {
             System.out.println(" -> " + t);
         }
     }
 
     private void optiuneVizualizareMatriceStatistica() {
-        System.out.println("--- VIZUALIZARE MATRICE 2D STATISTICA TRANZACTII (ECHIVALENT RON) ---");
+        System.out.println(I18n.t("MATRIX_TITLE"));
         double[][] matrice = bancaService.getMatriceStatisticaLunara();
         int[][] matriceNr = bancaService.getMatriceNumarTranzactii();
 
         System.out.printf("%-12s | %-14s | %-14s | %-14s | %-14s\n",
-                "Luna", "DEPUNERI", "RETRAGERI", "TRANSFERURI", "FACTURI");
+                I18n.t("MATRIX_COL_MONTH"), I18n.t("MATRIX_COL_DEP"), I18n.t("MATRIX_COL_WITH"),
+                I18n.t("MATRIX_COL_TRANSF"), I18n.t("MATRIX_COL_BILLS"));
         System.out.println("-----------------------------------------------------------------------------");
 
         for (int luna = 0; luna < 12; luna++) {
-            String numeLuna = Month.of(luna + 1).getDisplayName(TextStyle.FULL, Locale.forLanguageTag("ro-RO"));
-            numeLuna = numeLuna.substring(0, 1).toUpperCase() + numeLuna.substring(1);
+            String numeLuna = Month.of(luna + 1).getDisplayName(TextStyle.FULL, I18n.getLocale());
+            numeLuna = numeLuna.substring(0, 1).toUpperCase(I18n.getLocale()) + numeLuna.substring(1);
 
             System.out.printf("%-12s | %10.2f (%2d) | %10.2f (%2d) | %10.2f (%2d) | %10.2f (%2d)\n",
                     numeLuna,
@@ -249,93 +273,361 @@ public class MeniuConsola {
                     matrice[luna][3], matriceNr[luna][3]);
         }
         System.out.println("-----------------------------------------------------------------------------");
-        System.out.println("* Nota: Formatul celulei este 'Suma (Numar operatiuni)'");
+        System.out.println(I18n.t("MATRIX_NOTE"));
     }
 
     private void optiuneGenerareRaportText() {
-        System.out.println("--- GENERARE RAPORT STATISTIC FINANCIAR ---");
+        System.out.println(I18n.t("REPORT_TITLE"));
         try {
             raportGenerator.genereazaRaportStatistici(caleFisierRaport, bancaService);
-            System.out.println("[SUCCES] Raportul statistic a fost generat in fisierul: " + caleFisierRaport);
+            System.out.print(I18n.t("SUCCESS_REPORT", caleFisierRaport));
         } catch (IOException e) {
-            System.err.println("[EROARE] Nu s-a putut genera raportul: " + e.getMessage());
+            System.out.print(I18n.t("ERR_REPORT", e.getMessage()));
         }
     }
 
     private void optiuneExportBackupBinar() {
-        System.out.println("--- EXPORT COPIE DE SIGURANTA BINARA (AUDIT) ---");
+        System.out.println(I18n.t("BACKUP_EXPORT_TITLE"));
         try {
             binaryStorage.salveazaBackupBinar(caleFisierBackup, bancaService.getToateConturile(), bancaService.getToateTranzactiile());
-            System.out.println("[SUCCES] Backup-ul binar complet a fost salvat in: " + caleFisierBackup);
+            System.out.print(I18n.t("SUCCESS_BACKUP_EXPORT", caleFisierBackup));
         } catch (IOException e) {
-            System.err.println("[EROARE] Nu s-a putut crea backup-ul binar: " + e.getMessage());
+            System.out.print(I18n.t("ERR_BACKUP_EXPORT", e.getMessage()));
         }
     }
 
-    private void optiuneRestaurareBackupBinar() {
-        System.out.println("--- RESTAURARE DATE DIN BACKUP BINAR ---");
-        System.out.print("ATENTIE: Toate datele curente din memorie vor fi inlocuite cu cele din backup. Continuati? (da/nu): ");
+    private void optiuneRestaurareBackupBinar() throws OperatiuneAnulataException {
+        System.out.println(I18n.t("BACKUP_RESTORE_TITLE"));
+        System.out.print(I18n.t("WARN_BACKUP_RESTORE"));
         String confirmare = scanner.nextLine().trim();
-        if (!confirmare.equalsIgnoreCase("da")) {
-            System.out.println("Operatiune anulata.");
+        if (confirmare.equals("0") || confirmare.equalsIgnoreCase("nu") || confirmare.equalsIgnoreCase("no") || confirmare.equalsIgnoreCase("cancel")) {
+            throw new OperatiuneAnulataException(I18n.t("BACKUP_RESTORE_CANCELLED"));
+        }
+        if (!confirmare.equalsIgnoreCase("da") && !confirmare.equalsIgnoreCase("yes")) {
+            System.out.println(I18n.t("BACKUP_RESTORE_NOT_CONFIRMED"));
             return;
         }
 
         try {
             binaryStorage.restaureazaBackupBinar(caleFisierBackup, bancaService);
-            System.out.println("[SUCCES] Baza de date din memorie a fost restaurata cu succes din backup!");
+            System.out.print(I18n.t("SUCCESS_BACKUP_RESTORE"));
         } catch (Exception e) {
-            System.err.println("[EROARE] Restaurarea din backup a esuat: " + e.getMessage());
+            System.out.print(I18n.t("ERR_BACKUP_RESTORE", e.getMessage()));
         }
     }
 
     private void optiuneBlocareDeblocareCont() throws BancarException {
-        System.out.println("--- BLOCARE / DEBLOCARE CONT BANCAR ---");
-        String iban = citesteSir("Introduceti IBAN-ul contului: ").toUpperCase();
-        ContBancar cont = bancaService.gasesteCont(iban);
+        System.out.println(I18n.t("LOCK_TITLE"));
+        System.out.println(I18n.t("CANCEL_NOTE"));
 
-        System.out.println("Starea actuala a contului: " + (cont.isActiv() ? "ACTIV" : "BLOCAT"));
-        System.out.print("Doriti sa " + (cont.isActiv() ? "BLOCATI" : "ACTIVATI") + " contul? (da/nu): ");
+        ContBancar cont = citesteIbanExistent(I18n.t("PROMPT_IBAN_ACCOUNT"), false);
+
+        System.out.print(I18n.t("CURRENT_STATE", cont.isActiv() ? I18n.t("STATE_ACTIVE") : I18n.t("STATE_LOCKED")));
+        String actiune = cont.isActiv() ? I18n.t("ACTION_LOCK") : I18n.t("ACTION_UNLOCK");
+        System.out.print(I18n.t("PROMPT_LOCK_ACTION", actiune));
         String raspuns = scanner.nextLine().trim();
 
-        if (raspuns.equalsIgnoreCase("da")) {
-            bancaService.blocheazaDeblocheazaCont(iban, !cont.isActiv());
-            System.out.println("[SUCCES] Starea contului a fost actualizata: " + (!cont.isActiv() ? "BLOCAT" : "ACTIV"));
+        if (raspuns.equals("0") || raspuns.equalsIgnoreCase("cancel") || raspuns.equalsIgnoreCase("anulare")) {
+            throw new OperatiuneAnulataException();
+        }
+
+        if (raspuns.equalsIgnoreCase("da") || raspuns.equalsIgnoreCase("yes")) {
+            bancaService.blocheazaDeblocheazaCont(cont.getIban(), !cont.isActiv());
+            String stareNoua = !cont.isActiv() ? I18n.t("STATE_LOCKED") : I18n.t("STATE_ACTIVE");
+            System.out.print(I18n.t("SUCCESS_LOCK_UPDATE", stareNoua));
         } else {
-            System.out.println("Nicio modificare efectuata.");
+            System.out.println(I18n.t("NO_CHANGE"));
+        }
+    }
+
+    /**
+     * Comuta limba interfetei intre Romana (cu diacritice) si Engleza.
+     */
+    private void optiuneSchimbareLimba() {
+        System.out.println(I18n.t("LANG_TITLE"));
+        System.out.print(I18n.t("LANG_CURRENT", I18n.getLimba().getDenumire()));
+        System.out.println(I18n.t("LANG_OPT_1"));
+        System.out.println(I18n.t("LANG_OPT_2"));
+        System.out.println(I18n.t("LANG_OPT_0"));
+
+        int opt = citesteInt(I18n.t("PROMPT_LANG_SELECT"), 0, 2);
+        if (opt == 1) {
+            I18n.setLimba(Limba.ROMANA);
+            System.out.println(I18n.t("SUCCESS_LANG_RO"));
+        } else if (opt == 2) {
+            I18n.setLimba(Limba.ENGLEZA);
+            System.out.println(I18n.t("SUCCESS_LANG_EN"));
         }
     }
 
     public void optiuneSalvareSiIesire() {
-        System.out.println("--- SALVARE DATE SI INCHIDERE APLICATIE ---");
+        System.out.println(I18n.t("EXIT_TITLE"));
         try {
-            System.out.println("Salvare conturi actualizate in " + caleFisierConturi + "...");
+            System.out.print(I18n.t("SAVING_ACCOUNTS", caleFisierConturi));
             csvStorage.salveazaConturi(caleFisierConturi, bancaService.getToateConturile());
 
-            System.out.println("Salvare tranzactii actualizate in " + caleFisierTranzactii + "...");
+            System.out.print(I18n.t("SAVING_TRANSACTIONS", caleFisierTranzactii));
             csvStorage.salveazaTranzactii(caleFisierTranzactii, bancaService.getToateTranzactiile());
 
-            System.out.println("[SUCCES] Toate modificarile din memorie au fost persistate cu succes pe disc!");
+            System.out.print(I18n.t("SUCCESS_SAVED"));
         } catch (IOException e) {
             System.err.println("[EROARE CRITICA LA SALVARE] " + e.getMessage());
         }
 
         aplicatieRuland = false;
-        System.out.println("\nVa multumim ca ati utilizat Sistemul de E-Banking PPOO. La revedere!");
+        System.out.println("\n" + I18n.t("GOODBYE"));
     }
 
     // =========================================================================
-    // METODE AJUTATOARE PENTRU CITIRE SI VALIDARE DIN CONSOLA (Cerinta 5)
+    // METODE AJUTATOARE PENTRU CITIRE SI VALIDARE IMEDIATA IN CONSOLA (Cerinta 5)
     // =========================================================================
 
-    private String citesteSir(String prompt) {
+    private String citesteLinieSauAnulare(String prompt) throws OperatiuneAnulataException {
         System.out.print(prompt);
         String val = scanner.nextLine().trim();
+        if (esteComandaAnulare(val)) {
+            throw new OperatiuneAnulataException(I18n.t("OP_CANCELLED"));
+        }
         while (val.isEmpty()) {
-            System.out.print("Campul nu poate fi gol. Reintroduceti: ");
+            System.out.print(I18n.t("ERR_FIELD_EMPTY"));
             val = scanner.nextLine().trim();
+            if (esteComandaAnulare(val)) {
+                throw new OperatiuneAnulataException(I18n.t("OP_CANCELLED"));
+            }
         }
         return val;
+    }
+
+    private boolean esteComandaAnulare(String val) {
+        return "0".equals(val) || "cancel".equalsIgnoreCase(val) || "anulare".equalsIgnoreCase(val) || "q".equalsIgnoreCase(val);
+    }
+
+    private ContBancar citesteIbanExistent(String prompt, boolean necesitaActiv) throws OperatiuneAnulataException {
+        while (true) {
+            String input = citesteLinieSauAnulare(prompt);
+            String cleanIban = input.toUpperCase().replaceAll("\\s+", "");
+
+            try {
+                bancaService.valideazaIban(cleanIban);
+            } catch (FormatDateIncorectException ex) {
+                System.out.print(I18n.t("ERR_IBAN_INVALID", ex.getMessage()));
+                continue;
+            }
+
+            ContBancar cont;
+            try {
+                cont = bancaService.gasesteCont(cleanIban);
+            } catch (ContInexistentException ex) {
+                System.out.print(I18n.t("ERR_IBAN_NOT_FOUND", cleanIban));
+                continue;
+            }
+
+            if (necesitaActiv && !cont.isActiv()) {
+                System.out.print(I18n.t("ERR_IBAN_BLOCKED", cleanIban, cont.getTitular().getNume()));
+                continue;
+            }
+
+            System.out.print(I18n.t("INFO_ACCOUNT_FOUND",
+                    cont.getIban(), cont.getTitular().getNume(), cont.getSold(), cont.getMoneda().name(),
+                    cont.isActiv() ? I18n.t("STATE_ACTIVE") : I18n.t("STATE_LOCKED")));
+            return cont;
+        }
+    }
+
+    private String citesteIbanNou(String prompt) throws OperatiuneAnulataException {
+        while (true) {
+            String input = citesteLinieSauAnulare(prompt);
+            String cleanIban = input.toUpperCase().replaceAll("\\s+", "");
+
+            try {
+                bancaService.valideazaIban(cleanIban);
+            } catch (FormatDateIncorectException ex) {
+                System.out.print(I18n.t("ERR_IBAN_INVALID", ex.getMessage()));
+                continue;
+            }
+
+            try {
+                ContBancar existent = bancaService.gasesteCont(cleanIban);
+                System.out.print(I18n.t("ERR_IBAN_EXISTS", cleanIban, existent.getTitular().getNume()));
+                continue;
+            } catch (ContInexistentException e) {
+                // IBAN-ul este disponibil
+            }
+
+            return cleanIban;
+        }
+    }
+
+    private String citesteNume(String prompt) throws OperatiuneAnulataException {
+        while (true) {
+            String nume = citesteLinieSauAnulare(prompt);
+            if (nume.length() < 3 || nume.matches("^\\d+$")) {
+                System.out.print(I18n.t("ERR_NAME_INVALID"));
+                continue;
+            }
+            return nume;
+        }
+    }
+
+    private String citesteCnp(String prompt) throws OperatiuneAnulataException {
+        while (true) {
+            String cnp = citesteLinieSauAnulare(prompt);
+            if (!cnp.matches("^\\d{13}$")) {
+                System.out.print(I18n.t("ERR_CNP_INVALID"));
+                continue;
+            }
+            return cnp;
+        }
+    }
+
+    private String citesteEmail(String prompt) throws OperatiuneAnulataException {
+        while (true) {
+            String email = citesteLinieSauAnulare(prompt);
+            if (!email.contains("@") || !email.contains(".") || email.length() < 5 || email.indexOf('@') > email.lastIndexOf('.')) {
+                System.out.print(I18n.t("ERR_EMAIL_INVALID"));
+                continue;
+            }
+            return email;
+        }
+    }
+
+    private String citesteTelefon(String prompt) throws OperatiuneAnulataException {
+        while (true) {
+            String tel = citesteLinieSauAnulare(prompt);
+            String cleanTel = tel.replaceAll("[\\s\\-+()]", "");
+            if (cleanTel.length() < 10 || !cleanTel.matches("^\\d+$")) {
+                System.out.print(I18n.t("ERR_PHONE_INVALID"));
+                continue;
+            }
+            return tel;
+        }
+    }
+
+    private double citesteSumaDepunere(String prompt) throws OperatiuneAnulataException {
+        while (true) {
+            String linie = citesteLinieSauAnulare(prompt);
+            try {
+                double val = Double.parseDouble(linie.replace(',', '.'));
+                if (val <= 0) {
+                    System.out.print(I18n.t("ERR_AMOUNT_POSITIVE_DEP"));
+                    continue;
+                }
+                return val;
+            } catch (NumberFormatException ex) {
+                System.out.println(I18n.t("ERR_NUMERIC_FORMAT"));
+            }
+        }
+    }
+
+    private double citesteSumaRetragere(ContBancar cont, String prompt) throws OperatiuneAnulataException {
+        while (true) {
+            System.out.print(I18n.t("INFO_CURRENT_BALANCE", cont.getSold(), cont.getMoneda().name()));
+            String linie = citesteLinieSauAnulare(prompt);
+            try {
+                double val = Double.parseDouble(linie.replace(',', '.'));
+                if (val <= 0) {
+                    System.out.print(I18n.t("ERR_AMOUNT_POSITIVE_WITH"));
+                    continue;
+                }
+
+                double comision = Math.max(1.0, val * 0.002);
+                double totalNecesar = val + comision;
+
+                if (totalNecesar > cont.getSold()) {
+                    System.out.print(I18n.t("ERR_INSUFFICIENT_FUNDS_WITHDRAW", val, cont.getMoneda().name(), totalNecesar, cont.getMoneda().name(), comision, cont.getMoneda().name(), cont.getSold(), cont.getMoneda().name()));
+                    continue;
+                }
+
+                return val;
+            } catch (NumberFormatException ex) {
+                System.out.println(I18n.t("ERR_NUMERIC_FORMAT"));
+            }
+        }
+    }
+
+    private double citesteSumaTransfer(ContBancar contSursa, String prompt) throws OperatiuneAnulataException {
+        while (true) {
+            System.out.print(I18n.t("INFO_SOURCE_BALANCE", contSursa.getSold(), contSursa.getMoneda().name()));
+            String linie = citesteLinieSauAnulare(prompt);
+            try {
+                double val = Double.parseDouble(linie.replace(',', '.'));
+                if (val <= 0) {
+                    System.out.print(I18n.t("ERR_AMOUNT_POSITIVE_TRANSF"));
+                    continue;
+                }
+
+                double comision = Math.max(2.0, val * 0.005);
+                double totalNecesar = val + comision;
+
+                if (totalNecesar > contSursa.getSold()) {
+                    System.out.print(I18n.t("ERR_INSUFFICIENT_FUNDS_TRANSFER", totalNecesar, contSursa.getMoneda().name(), val, comision, contSursa.getSold(), contSursa.getMoneda().name()));
+                    continue;
+                }
+
+                return val;
+            } catch (NumberFormatException ex) {
+                System.out.println(I18n.t("ERR_NUMERIC_FORMAT"));
+            }
+        }
+    }
+
+    private double citesteSumaFactura(ContBancar cont, String prompt) throws OperatiuneAnulataException {
+        while (true) {
+            System.out.print(I18n.t("INFO_CURRENT_BALANCE", cont.getSold(), cont.getMoneda().name()));
+            String linie = citesteLinieSauAnulare(prompt);
+            try {
+                double val = Double.parseDouble(linie.replace(',', '.'));
+                if (val <= 0) {
+                    System.out.print(I18n.t("ERR_AMOUNT_POSITIVE_BILL"));
+                    continue;
+                }
+
+                if (val > cont.getSold()) {
+                    System.out.print(I18n.t("ERR_INSUFFICIENT_FUNDS_BILL", val, cont.getMoneda().name(), cont.getSold(), cont.getMoneda().name()));
+                    continue;
+                }
+
+                return val;
+            } catch (NumberFormatException ex) {
+                System.out.println(I18n.t("ERR_NUMERIC_FORMAT"));
+            }
+        }
+    }
+
+    private double citesteSoldInitial(String prompt) throws OperatiuneAnulataException {
+        while (true) {
+            System.out.print(prompt);
+            String linie = scanner.nextLine().trim();
+            if (linie.isEmpty()) {
+                return 0.0;
+            }
+            if (esteComandaAnulare(linie)) {
+                throw new OperatiuneAnulataException(I18n.t("OP_CANCELLED"));
+            }
+            try {
+                double val = Double.parseDouble(linie.replace(',', '.'));
+                if (val < 0) {
+                    System.out.print(I18n.t("ERR_INIT_BALANCE_NEGATIVE"));
+                    continue;
+                }
+                return val;
+            } catch (NumberFormatException ex) {
+                System.out.println(I18n.t("ERR_NUMERIC_FORMAT"));
+            }
+        }
+    }
+
+    private String citesteSirObligatoriu(String prompt) throws OperatiuneAnulataException {
+        return citesteLinieSauAnulare(prompt);
+    }
+
+    private String citesteDescriereOptionala(String prompt, String valoareImplicita) throws OperatiuneAnulataException {
+        System.out.print(prompt);
+        String val = scanner.nextLine().trim();
+        if (esteComandaAnulare(val)) {
+            throw new OperatiuneAnulataException(I18n.t("OP_CANCELLED"));
+        }
+        return val.isEmpty() ? valoareImplicita : val;
     }
 
     private int citesteInt(String prompt, int min, int max) {
@@ -347,32 +639,19 @@ public class MeniuConsola {
                 if (val >= min && val <= max) {
                     return val;
                 }
-                System.out.printf("Valoarea trebuie sa fie un numar intre %d si %d!\n", min, max);
+                System.out.print(I18n.t("ERR_INT_RANGE", min, max));
             } catch (NumberFormatException ex) {
-                System.out.println("Format invalid! Introduceti un numar intreg.");
+                System.out.println(I18n.t("ERR_NOT_INT"));
             }
         }
     }
 
-    private double citesteDouble(String prompt) {
-        while (true) {
-            System.out.print(prompt);
-            String linie = scanner.nextLine().trim().replace(',', '.');
-            try {
-                double val = Double.parseDouble(linie);
-                if (val >= 0) {
-                    return val;
-                }
-                System.out.println("Suma nu poate fi negativa!");
-            } catch (NumberFormatException ex) {
-                System.out.println("Format numeric invalid! Exemplu: 1500.50");
-            }
+    private Moneda citesteMoneda() throws OperatiuneAnulataException {
+        System.out.println(I18n.t("CURRENCIES_MENU"));
+        int opt = citesteInt(I18n.t("PROMPT_SELECT_CURRENCY"), 0, 4);
+        if (opt == 0) {
+            throw new OperatiuneAnulataException(I18n.t("OP_CANCELLED"));
         }
-    }
-
-    private Moneda citesteMoneda() {
-        System.out.println("Monede disponibile: 1. RON | 2. EUR | 3. USD | 4. GBP");
-        int opt = citesteInt("Selectati moneda (1-4): ", 1, 4);
         return switch (opt) {
             case 2 -> Moneda.EUR;
             case 3 -> Moneda.USD;
@@ -381,9 +660,12 @@ public class MeniuConsola {
         };
     }
 
-    private TipCont citesteTipCont() {
-        System.out.println("Tipuri de cont disponibile: 1. CURENT | 2. ECONOMII | 3. DEPOZIT");
-        int opt = citesteInt("Selectati tipul contului (1-3): ", 1, 3);
+    private TipCont citesteTipCont() throws OperatiuneAnulataException {
+        System.out.println(I18n.t("ACC_TYPES_MENU"));
+        int opt = citesteInt(I18n.t("PROMPT_SELECT_ACC_TYPE"), 0, 3);
+        if (opt == 0) {
+            throw new OperatiuneAnulataException(I18n.t("OP_CANCELLED"));
+        }
         return switch (opt) {
             case 2 -> TipCont.ECONOMII;
             case 3 -> TipCont.DEPOZIT;

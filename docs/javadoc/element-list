@@ -1,6 +1,8 @@
 ro.ase.ppoo.ebanking
 ro.ase.ppoo.ebanking.exception
+ro.ase.ppoo.ebanking.i18n
 ro.ase.ppoo.ebanking.model
 ro.ase.ppoo.ebanking.service
 ro.ase.ppoo.ebanking.storage
 ro.ase.ppoo.ebanking.ui
+ro.ase.ppoo.ebanking.util

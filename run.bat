@@ -1,5 +1,6 @@
 @echo off
 setlocal
+chcp 65001 >nul
 where java >nul 2>nul
 if %ERRORLEVEL% neq 0 (
     if exist "C:\Program Files\Android\openjdk\jdk-21.0.8\bin\java.exe" (
@@ -9,5 +10,5 @@ if %ERRORLEVEL% neq 0 (
     )
 )
 
-java -Dfile.encoding=UTF-8 -cp bin ro.ase.ppoo.ebanking.Main
+java -Dfile.encoding=UTF-8 -Dstdout.encoding=UTF-8 -Dstderr.encoding=UTF-8 -cp bin ro.ase.ppoo.ebanking.Main
 endlocal

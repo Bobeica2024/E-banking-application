@@ -1,5 +1,6 @@
 @echo off
 setlocal
+chcp 65001 >nul
 echo ===================================================
 echo [PPOO] Compilare Aplicatie E-Banking...
 echo ===================================================
@@ -15,7 +16,7 @@ if %ERRORLEVEL% neq 0 (
 
 if not exist "bin" mkdir "bin"
 
-javac -encoding UTF-8 -d bin src\ro\ase\ppoo\ebanking\*.java src\ro\ase\ppoo\ebanking\model\*.java src\ro\ase\ppoo\ebanking\exception\*.java src\ro\ase\ppoo\ebanking\service\*.java src\ro\ase\ppoo\ebanking\storage\*.java src\ro\ase\ppoo\ebanking\ui\*.java
+javac -encoding UTF-8 -d bin src\ro\ase\ppoo\ebanking\*.java src\ro\ase\ppoo\ebanking\model\*.java src\ro\ase\ppoo\ebanking\exception\*.java src\ro\ase\ppoo\ebanking\service\*.java src\ro\ase\ppoo\ebanking\storage\*.java src\ro\ase\ppoo\ebanking\ui\*.java src\ro\ase\ppoo\ebanking\i18n\*.java src\ro\ase\ppoo\ebanking\util\*.java
 
 if %ERRORLEVEL% equ 0 (
     echo [SUCCES] Compilarea s-a incheiat cu succes in directorul 'bin'!

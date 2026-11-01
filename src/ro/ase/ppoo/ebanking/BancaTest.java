@@ -1,6 +1,7 @@
 package ro.ase.ppoo.ebanking;
 
 import ro.ase.ppoo.ebanking.exception.*;
+import ro.ase.ppoo.ebanking.i18n.*;
 import ro.ase.ppoo.ebanking.model.*;
 import ro.ase.ppoo.ebanking.service.BancaService;
 import ro.ase.ppoo.ebanking.storage.BinaryStorage;
@@ -25,6 +26,7 @@ public class BancaTest {
         System.out.println("==========================================================");
 
         ruleazaTest("Test Deschidere Cont si Colectii", BancaTest::testDeschidereCont);
+        ruleazaTest("Test Validare IBAN Romanesc si International", BancaTest::testValidareIban);
         ruleazaTest("Test Depunere si Retragere", BancaTest::testDepunereRetragere);
         ruleazaTest("Test Exceptie Fonduri Insuficiente", BancaTest::testExceptieFonduriInsuficiente);
         ruleazaTest("Test Transfer Valutar si Vector Rate (Masiv 1D)", BancaTest::testTransferValutar);
@@ -65,6 +67,197 @@ public class BancaTest {
         afirma(gasit.getSold() == 500.0, "Soldul initial este incorect");
         afirma(service.getToateConturile().size() == 1, "Numarul total de conturi este incorect");
         afirma(service.getTotiClientii().contains(c), "Clientul nu a fost adaugat in HashSet");
+    }
+
+    private static void testValidareIban() throws Exception {
+        BancaService service = new BancaService();
+
+        // 1. IBAN Romanesc valid (exact 24 caractere)
+        service.valideazaIban("RO49BTRLRONCRT0012345601");
+
+        // 2. IBAN-uri internationale valide (intre 15 si 34 caractere conform ISO 13616)
+        service.valideazaIban("DE89370400440532013000"); // Germania (22 caractere)
+        service.valideazaIban("GB29NWBK60161331926819"); // Marea Britanie (22 caractere)
+        service.valideazaIban("FR1420041010050500013M02606"); // Franta (27 caractere)
+        service.valideazaIban("MT84MALT01100000000000000000123"); // Malta (31 caractere)
+
+        // 3. IBAN Romanesc invalid (23 caractere in loc de 24)
+        boolean aPicatRo23 = false;
+        try {
+            service.valideazaIban("RO49BTRLRONCRT001234560");
+        } catch (FormatDateIncorectException ex) {
+            aPicatRo23 = true;
+        }
+        afirma(aPicatRo23, "Trebuia sa arunce exceptie pentru IBAN RO cu 23 de caractere");
+
+        // 4. IBAN peste limita maxima internationala de 34 caractere (ex: 35 caractere)
+        boolean aPicatPeste34 = false;
+        try {
+            service.valideazaIban("DE893704004405320130001111222233334444");
+        } catch (FormatDateIncorectException ex) {
+            aPicatPeste34 = true;
+        }
+        afirma(aPicatPeste34, "Trebuia sa arunce exceptie pentru IBAN de peste 34 caractere");
+
+        // 5. IBAN sub limita minima internationala (< 15 caractere)
+        boolean aPicatSub15 = false;
+        try {
+            service.valideazaIban("RO1234567890");
+        } catch (FormatDateIncorectException ex) {
+            aPicatSub15 = true;
+        }
+        afirma(aPicatSub15, "Trebuia sa arunce exceptie pentru IBAN sub 15 caractere");
+
+        // 6. IBAN Germania gresit ca lungime (21 caractere in loc de 22)
+        boolean aPicatDeLungime = false;
+        try {
+            service.valideazaIban("DE8937040044053201300");
+        } catch (FormatDateIncorectException ex) {
+            aPicatDeLungime = true;
+        }
+        afirma(aPicatDeLungime, "Trebuia sa arunce exceptie pentru IBAN Germania cu lungime != 22");
+
+        // 7. IBAN Germania cu litere in loc de cifre (Germania foloseste doar cifre dupa DE)
+        boolean aPicatDeFormat = false;
+        try {
+            service.valideazaIban("DE89370400440532ABCD00");
+        } catch (FormatDateIncorectException ex) {
+            aPicatDeFormat = true;
+        }
+        afirma(aPicatDeFormat, "Trebuia sa arunce exceptie pentru IBAN Germania continand litere in numarul de cont");
+
+        // 8. IBAN Franta gresit ca lungime (25 caractere in loc de 27)
+        boolean aPicatFrLungime = false;
+        try {
+            service.valideazaIban("FR1420041010050500013M026");
+        } catch (FormatDateIncorectException ex) {
+            aPicatFrLungime = true;
+        }
+        afirma(aPicatFrLungime, "Trebuia sa arunce exceptie pentru IBAN Franta cu lungime != 27");
+
+        // 9. Validare tari nordice (Norvegia 15, Danemarca 18, Suedia 24) si Elvetia (21)
+        service.valideazaIban("NO9386011117947"); // Norvegia (15 caractere)
+        service.valideazaIban("DK5000400440105849"); // Danemarca (18 caractere)
+        service.valideazaIban("SE4550000000054910000003"); // Suedia (24 caractere)
+        service.valideazaIban("CH9300762011623852957"); // Elvetia (21 caractere)
+
+        // 10. Validare state internationale / non-SEPA (SUA, Canada, Australia, Noua Zeelanda)
+        service.valideazaIban("US64SVBKUS6S3330058864"); // SUA (22 caractere)
+        service.valideazaIban("CA12000400010001234567"); // Canada (22 caractere)
+        service.valideazaIban("AU1200000012345678"); // Australia (18 caractere)
+        service.valideazaIban("NZ1200010001234567"); // Noua Zeelanda (18 caractere)
+
+        // 11. Norvegia gresita (16 caractere in loc de 15)
+        boolean aPicatNo = false;
+        try {
+            service.valideazaIban("NO93860111179470");
+        } catch (FormatDateIncorectException ex) {
+            aPicatNo = true;
+        }
+        afirma(aPicatNo, "Trebuia sa arunce exceptie pentru IBAN Norvegia cu lungime != 15");
+
+        // 12. Elvetia gresita (20 caractere in loc de 21)
+        boolean aPicatCh = false;
+        try {
+            service.valideazaIban("CH930076201162385295");
+        } catch (FormatDateIncorectException ex) {
+            aPicatCh = true;
+        }
+        afirma(aPicatCh, "Trebuia sa arunce exceptie pentru IBAN Elvetia cu lungime != 21");
+
+        // 13. Validare tari vecine cu Romania si Turcia
+        service.valideazaIban("MD24AG000000000123456789"); // Moldova (exact 24 caractere)
+        service.valideazaIban("UA213000010000000041234567890"); // Ucraina (exact 29 caractere)
+        service.valideazaIban("RS35260000000123456789"); // Serbia (exact 22 caractere)
+        service.valideazaIban("TR330006100512345678901234"); // Turcia (exact 26 caractere)
+
+        // 14. Turcia gresita ca lungime (25 in loc de 26)
+        boolean aPicatTr = false;
+        try {
+            service.valideazaIban("TR33000610051234567890123");
+        } catch (FormatDateIncorectException ex) {
+            aPicatTr = true;
+        }
+        afirma(aPicatTr, "Trebuia sa arunce exceptie pentru IBAN Turcia cu lungime != 26");
+
+        // 15. Validare alte state UE si Balcanice (Croatia 21, Bosnia 20, Muntenegru 22, Macedonia 19, Albania 28, Cipru 28, Estonia 20, Slovacia 24)
+        service.valideazaIban("HR1212345678901234567"); // Croatia (21 caractere)
+        service.valideazaIban("BA391234567890123456"); // Bosnia si Hertegovina (20 caractere)
+        service.valideazaIban("ME25123456789012345678"); // Muntenegru (22 caractere)
+        service.valideazaIban("MK07200123456789012"); // Macedonia de Nord (19 caractere)
+        service.valideazaIban("AL35212110090000000235698741"); // Albania (28 caractere)
+        service.valideazaIban("CY17002001280000001200527600"); // Cipru (28 caractere)
+        service.valideazaIban("EE382200221020145682"); // Estonia (20 caractere)
+        service.valideazaIban("SK3112000000001987426375"); // Slovacia (24 caractere)
+
+        // 16. Bosnia gresita (21 caractere in loc de 20)
+        boolean aPicatBa = false;
+        try {
+            service.valideazaIban("BA3912345678901234560");
+        } catch (FormatDateIncorectException ex) {
+            aPicatBa = true;
+        }
+        afirma(aPicatBa, "Trebuia sa arunce exceptie pentru IBAN Bosnia cu lungime != 20");
+
+        // 17. Validare Orientul Mijlociu (EAU/Dubai 23, Israel 23), America Latina (Brazilia 29), Asia (Pakistan 24, Nepal, India)
+        service.valideazaIban("AE260331234567890123456"); // EAU (23 caractere)
+        service.valideazaIban("IL450100121234567890123"); // Israel (23 caractere)
+        service.valideazaIban("BR1200000000000000000000000A1"); // Brazilia (29 caractere)
+        service.valideazaIban("PK12HABB0000000123456789"); // Pakistan (24 caractere)
+        service.valideazaIban("NP120000000001234567"); // Nepal (20 caractere)
+        service.valideazaIban("IN12SBIN00012345678901"); // India (22 caractere)
+
+        // 18. EAU gresit ca lungime (22 caractere in loc de 23)
+        boolean aPicatAe = false;
+        try {
+            service.valideazaIban("AE26033123456789012345");
+        } catch (FormatDateIncorectException ex) {
+            aPicatAe = true;
+        }
+        afirma(aPicatAe, "Trebuia sa arunce exceptie pentru IBAN EAU cu lungime != 23");
+
+        // 19. Validare America Latina extinsa (Mexic 22, Argentina 26, Uruguay 28, Chile 24, Columbia 24, Peru 24)
+        service.valideazaIban("MX12000000000012345678"); // Mexic (22 caractere)
+        service.valideazaIban("AR120000000000000012345678"); // Argentina (26 caractere)
+        service.valideazaIban("UY12000100000000000012345678"); // Uruguay (28 caractere)
+        service.valideazaIban("CL12BANC0000000012345678"); // Chile (24 caractere)
+        service.valideazaIban("CO1200000000000012345678"); // Columbia (24 caractere)
+        service.valideazaIban("PE1200000000000012345678"); // Peru (24 caractere)
+
+        // 20. Validare Asia & Extremul Orient (China, Japonia, Coreea de Sud, Singapore, Bangladesh)
+        service.valideazaIban("CN12000100100012345678"); // China (22 caractere)
+        service.valideazaIban("JP120001001012345678"); // Japonia (20 caractere)
+        service.valideazaIban("KR120001001012345678"); // Coreea de Sud (20 caractere)
+        service.valideazaIban("SG120001001012345678"); // Singapore (20 caractere)
+        service.valideazaIban("BD120001001012345678"); // Bangladesh (20 caractere)
+
+        // 21. Mexic gresit ca lungime (21 in loc de 22)
+        boolean aPicatMx = false;
+        try {
+            service.valideazaIban("MX1200000000001234567");
+        } catch (FormatDateIncorectException ex) {
+            aPicatMx = true;
+        }
+        afirma(aPicatMx, "Trebuia sa arunce exceptie pentru IBAN Mexic cu lungime != 22");
+
+        // 22. Uruguay gresit ca lungime (27 in loc de 28)
+        boolean aPicatUy = false;
+        try {
+            service.valideazaIban("UY1200010000000000001234567");
+        } catch (FormatDateIncorectException ex) {
+            aPicatUy = true;
+        }
+        afirma(aPicatUy, "Trebuia sa arunce exceptie pentru IBAN Uruguay cu lungime != 28");
+
+        // 23. Validare Indonezia (ID) si verificare eroare lungime invalida
+        service.valideazaIban("ID120001001012345678"); // Indonezia (20 caractere)
+        boolean aPicatId = false;
+        try {
+            service.valideazaIban("ID123"); // Sub 15 caractere
+        } catch (FormatDateIncorectException ex) {
+            aPicatId = true;
+        }
+        afirma(aPicatId, "Trebuia sa arunce exceptie pentru IBAN Indonezia cu lungime sub limita minima");
     }
 
     private static void testDepunereRetragere() throws Exception {
@@ -153,6 +346,20 @@ public class BancaTest {
             blocatAruncat = true;
         }
         afirma(blocatAruncat, "ContBlocatException nu a fost aruncata pe cont inactiv");
+
+        // Test OperatiuneAnulataException (ierarhie BancarException)
+        OperatiuneAnulataException exAnulare = new OperatiuneAnulataException("Test anulare");
+        afirma(exAnulare instanceof BancarException, "OperatiuneAnulataException trebuie sa fie derivata din BancarException");
+        afirma(exAnulare.getMessage().equals("Test anulare"), "Mesajul exceptiei de anulare este incorect");
+
+        // Test i18n si comutare bilingva (Romana cu diacritice / Engleza)
+        I18n.setLimba(Limba.ROMANA);
+        afirma(I18n.getLimba() == Limba.ROMANA, "Limba initiala trebuie sa fie Romana");
+        afirma(I18n.t("MENU_TITLE").contains("SISTEM E-BANKING"), "Titlul in romana trebuie sa fie setat");
+        I18n.setLimba(Limba.ENGLEZA);
+        afirma(I18n.getLimba() == Limba.ENGLEZA, "Limba trebuie sa poata fi comutata pe Engleza");
+        afirma(I18n.t("MENU_TITLE").contains("E-BANKING SYSTEM"), "Titlul in engleza trebuie sa fie tradus corect");
+        I18n.setLimba(Limba.ROMANA);
     }
 
     private static void testPersistentaCsv() throws Exception {
