@@ -1,0 +1,52 @@
+=========================================================================================
+                  RAPORT STATISTIC FINANCIAR - SISTEM E-BANKING PPOO                     
+                      Data generarii: 2026-11-01 13:03:07
+=========================================================================================
+
+1. SINTEZA GENERALA CONTURI SI LICHIDITATI:
+-----------------------------------------------------------------------------------------
+ - Numar total de conturi active: 5
+ - Numar clienti unici: 5
+ - Total fonduri gestionate (in RON):   108,732.75 lei
+ - Total fonduri gestionate (in EUR):    21,855.83 €
+ - Total fonduri gestionate (in USD):    23,383.39 $
+
+2. RATE DE SCHIMB VALUTAR DE REFERINTA (Vector fundamental double[]):
+-----------------------------------------------------------------------------------------
+ - 1 RON =  1.0000 RON (Leu Romanesc)
+ - 1 EUR =  4.9750 RON (Euro)
+ - 1 USD =  4.6500 RON (Dolar American)
+ - 1 GBP =  5.8500 RON (Lira Sterlina)
+
+3. ACTIVITATE TRANZACTIONALA LUNARA (Matrice fundamentala double[12][4] - echiv. RON):
+-----------------------------------------------------------------------------------------
+Luna         | DEPUNERI        | RETRAGERI       | TRANSFERURI     | FACTURI         | TOTAL LUNA     
+-----------------------------------------------------------------------------------------
+Ianuarie     |         0.00 lei |         0.00 lei |         0.00 lei |         0.00 lei |         0.00 lei
+Februarie    |         0.00 lei |         0.00 lei |         0.00 lei |         0.00 lei |         0.00 lei
+Martie       |         0.00 lei |         0.00 lei |         0.00 lei |         0.00 lei |         0.00 lei
+Aprilie      |         0.00 lei |         0.00 lei |         0.00 lei |         0.00 lei |         0.00 lei
+Mai          |         0.00 lei |         0.00 lei |         0.00 lei |         0.00 lei |         0.00 lei
+Iunie        |         0.00 lei |         0.00 lei |         0.00 lei |         0.00 lei |         0.00 lei
+Iulie        |         0.00 lei |         0.00 lei |         0.00 lei |         0.00 lei |         0.00 lei
+August       |         0.00 lei |         0.00 lei |         0.00 lei |         0.00 lei |         0.00 lei
+Septembrie   |         0.00 lei |         0.00 lei |         0.00 lei |         0.00 lei |         0.00 lei
+Octombrie    |     9,975.00 lei |       500.00 lei |     1,200.00 lei |       345.50 lei |    12,020.50 lei
+Noiembrie    |         0.00 lei |         0.00 lei |         0.00 lei |         0.00 lei |         0.00 lei
+Decembrie    |         0.00 lei |         0.00 lei |         0.00 lei |         0.00 lei |         0.00 lei
+-----------------------------------------------------------------------------------------
+TOTAL ANUAL  |     9,975.00 lei |       500.00 lei |     1,200.00 lei |       345.50 lei |    12,020.50 lei
+
+4. NUMAR TOTAL DE TRANZACTII AUDITATE: 5 operatiuni
+
+5. TOP 5 TRANZACTII CA VOLUM:
+-----------------------------------------------------------------------------------------
+ 1. [TRX-1002] DEPUNERE |   5,000.00 RON (~  5,000.00 RON) | RO49BTRLRONCRT0012345601 -> RO49BTRLRONCRT0012345601 | Alimentare cont numerar ATM
+ 2. [TRX-1005] DEPUNERE |   1,000.00 EUR (~  4,975.00 RON) | RO12BTRLEURCRT0098765402 -> RO12BTRLEURCRT0098765402 | Depunere numerar ghiseu
+ 3. [TRX-1001] TRANSFER |   1,200.00 RON (~  1,200.00 RON) | RO49BTRLRONCRT0012345601 -> RO55BTRLRONCRT0066778805 | Plata servicii IT
+ 4. [TRX-1003] RETRAGERE |     500.00 RON (~    500.00 RON) | RO55BTRLRONCRT0066778805 -> RO55BTRLRONCRT0066778805 | Retragere bancomat
+ 5. [TRX-1004] PLATA_FACTURA |     345.50 RON (~    345.50 RON) | RO55BTRLRONCRT0066778805 -> RO-TREZORERIE-UTILITATI | Factura energie electrica
+
+=========================================================================================
+                              SFARSIT RAPORT STATISTIC                                   
+=========================================================================================

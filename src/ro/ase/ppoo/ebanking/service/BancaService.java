@@ -11,7 +11,7 @@ import java.util.*;
  * 
  * Implementeaza cerintele academice PPOO:
  * - 2 masive fundamentale (1D: double[] rate de schimb, 2D: double[][] volume lunare tranzactionate)
- * - 3 colectii de obiecte (Map<String, ContBancar>, List<Tranzactie>, Set<Client>)
+ * - 3 colectii de obiecte (Map de ContBancar, List de Tranzactie, Set de Client)
  * - Toate modificarile se realizeaza exclusiv in memorie pe parcursul sesiunii.
  */
 public class BancaService {
