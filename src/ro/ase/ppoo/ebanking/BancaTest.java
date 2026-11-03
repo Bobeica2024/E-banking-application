@@ -25,16 +25,20 @@ public class BancaTest {
         System.out.println("     RULARE SUITA DE TESTE AUTOMATE SISTEM E-BANKING      ");
         System.out.println("==========================================================");
 
-        ruleazaTest("Test Deschidere Cont si Colectii", BancaTest::testDeschidereCont);
-        ruleazaTest("Test Validare IBAN Romanesc si International", BancaTest::testValidareIban);
-        ruleazaTest("Test Depunere si Retragere", BancaTest::testDepunereRetragere);
-        ruleazaTest("Test Exceptie Fonduri Insuficiente", BancaTest::testExceptieFonduriInsuficiente);
-        ruleazaTest("Test Transfer Valutar si Vector Rate (Masiv 1D)", BancaTest::testTransferValutar);
-        ruleazaTest("Test Matrice Statistica Bidimensionala (Masiv 2D)", BancaTest::testMatriceStatistica);
-        ruleazaTest("Test Exceptie Cont Blocat si Inexistent", BancaTest::testExceptiiCont);
-        ruleazaTest("Test Persistenta CSV (Salvare/Incarcare)", BancaTest::testPersistentaCsv);
-        ruleazaTest("Test Persistenta Binar (Salvare/Restaurare)", BancaTest::testPersistentaBinar);
-        ruleazaTest("Test Generare Raport Text Statistici", BancaTest::testGenerareRaport);
+        ruleazaTest("Test deschidere cont si colectii", BancaTest::testDeschidereCont);
+        ruleazaTest("Test validare IBAN romanesc si international", BancaTest::testValidareIban);
+        ruleazaTest("Test depunere si retragere", BancaTest::testDepunereRetragere);
+        ruleazaTest("Test exceptie fonduri insuficiente", BancaTest::testExceptieFonduriInsuficiente);
+        ruleazaTest("Test transfer valutar si vector rate (masiv 1D)", BancaTest::testTransferValutar);
+        ruleazaTest("Test matrice statistica bidimensionala (mMasiv 2D)", BancaTest::testMatriceStatistica);
+        ruleazaTest("Test exceptie cont blocat si inexistent", BancaTest::testExceptiiCont);
+        ruleazaTest("Test persistenta CSV (salvare/incarcare)", BancaTest::testPersistentaCsv);
+        ruleazaTest("Test persistenta binar (salvare/restaurare)", BancaTest::testPersistentaBinar);
+        ruleazaTest("Test generare raport text statistici", BancaTest::testGenerareRaport);
+        ruleazaTest("Test autentificare PIN si blocare cont la 3 incercari", BancaTest::testAutentificarePinSiBlocareLaTreiIncercari);
+        ruleazaTest("Test securitate si validare parola operator", BancaTest::testSecuritateParolaOperator);
+        ruleazaTest("Test generare IBAN RO si restrictie deschidere", BancaTest::testGenerareIbanSiRestrictieDeschidere);
+        ruleazaTest("Test transfer international catre IBAN extern", BancaTest::testTransferInternationalContExtern);
 
         System.out.println("==========================================================");
         System.out.printf("REZULTAT TESTE: %d / %d TESTE REUSITE (100%% SUCCESS)\n", testeTrecute, testeTotale);
@@ -59,7 +63,7 @@ public class BancaTest {
 
     private static void testDeschidereCont() throws Exception {
         BancaService service = new BancaService();
-        Client c = new Client("CLI-01", "George Enescu", "1900101123456", "george@art.ro", "0720123456");
+        Client c = new Client("CLI-01", "George Ifrim", "1900101123456", "georgeifrim93@gmail.ro", "0720123456");
         service.deschideCont("RO01BTRLRONCRT0000000001", c, TipCont.CURENT, Moneda.RON, 500.0);
 
         ContBancar gasit = service.gasesteCont("RO01BTRLRONCRT0000000001");
@@ -199,7 +203,7 @@ public class BancaTest {
         }
         afirma(aPicatBa, "Trebuia sa arunce exceptie pentru IBAN Bosnia cu lungime != 20");
 
-        // 17. Validare Orientul Mijlociu (EAU/Dubai 23, Israel 23), America Latina (Brazilia 29), Asia (Pakistan 24, Nepal, India)
+        // 17. Validare orientul mijlociu (EAU/Dubai 23, Israel 23), America Latina (Brazilia 29), Asia (Pakistan 24, Nepal, India)
         service.valideazaIban("AE260331234567890123456"); // EAU (23 caractere)
         service.valideazaIban("IL450100121234567890123"); // Israel (23 caractere)
         service.valideazaIban("BR1200000000000000000000000A1"); // Brazilia (29 caractere)
@@ -422,6 +426,97 @@ public class BancaTest {
         File f = new File(testRaportPath);
         afirma(f.exists() && f.length() > 500, "Fisierul de raport nu a fost generat corespunzator");
         f.delete();
+    }
+
+    private static void testAutentificarePinSiBlocareLaTreiIncercari() throws Exception {
+        BancaService service = new BancaService();
+        Client c = new Client("CLI-11", "Client Securitate", "1951111123456", "sec@test.ro", "0720111999");
+        service.deschideCont("RO11BTRLRONCRT0000000011", c, TipCont.CURENT, Moneda.RON, 500.0, "9876");
+
+        // 1. Autentificare reusita cu PIN corect
+        ContBancar auth = service.autentificaClient("RO11BTRLRONCRT0000000011", "9876");
+        afirma(auth != null, "Autentificarea cu PIN corect a esuat");
+        afirma(auth.isActiv(), "Contul ar trebui sa fie activ");
+
+        // 2. Incercare 1 PIN gresit -> arunca TranzactieInvalidaException
+        boolean err1 = false;
+        try {
+            service.autentificaClient("RO11BTRLRONCRT0000000011", "0000");
+        } catch (TranzactieInvalidaException ex) {
+            err1 = true;
+            afirma(auth.getIncercariRamase() == 2, "Trebuiau sa ramana 2 incercari");
+        }
+        afirma(err1, "Trebuia sa arunce TranzactieInvalidaException la PIN gresit 1");
+
+        // 3. Incercare 2 PIN gresit
+        boolean err2 = false;
+        try {
+            service.autentificaClient("RO11BTRLRONCRT0000000011", "0000");
+        } catch (TranzactieInvalidaException ex) {
+            err2 = true;
+            afirma(auth.getIncercariRamase() == 1, "Trebuia sa ramana 1 incercare");
+        }
+        afirma(err2, "Trebuia sa arunce TranzactieInvalidaException la PIN gresit 2");
+
+        // 4. Incercare 3 PIN gresit -> BLOCARE AUTOMATA a contului cu ContBlocatException
+        boolean blocat = false;
+        try {
+            service.autentificaClient("RO11BTRLRONCRT0000000011", "0000");
+        } catch (ContBlocatException ex) {
+            blocat = true;
+        }
+        afirma(blocat, "Contul trebuia sa fie blocat automat cu ContBlocatException dupa 3 incercari");
+        afirma(!auth.isActiv(), "Starea contului in memorie trebuia sa devina inactiv (blocat)");
+
+        // 5. Deblocare cont de catre operator
+        service.blocheazaDeblocheazaCont("RO11BTRLRONCRT0000000011", true);
+        auth.resetIncercariPin();
+        ContBancar reauth = service.autentificaClient("RO11BTRLRONCRT0000000011", "9876");
+        afirma(reauth != null && reauth.isActiv(), "Contul deblocat nu se poate autentifica");
+    }
+
+    private static void testSecuritateParolaOperator() throws Exception {
+        BancaService service = new BancaService();
+        afirma(!service.valideazaParolaOperator("banca2026"), "Parola simpla/gresita a fost acceptata");
+        afirma(!service.valideazaParolaOperator("admin"), "Parola 'admin' nu trebuie acceptata");
+        afirma(service.valideazaParolaOperator("Op#Secur!ty_9874Banca@PPOO"), "Parola securizata de operator nu a fost validata corect");
+    }
+
+    private static void testGenerareIbanSiRestrictieDeschidere() throws Exception {
+        BancaService service = new BancaService();
+        Client c = new Client("CLI-12", "Client RO", "1951212123456", "ro@test.ro", "0720222333");
+
+        // 1. Generare automata IBAN romanesc
+        String ibanGenerat = service.genereazaIbanRomanesc(TipCont.CURENT, Moneda.RON);
+        afirma(ibanGenerat != null && ibanGenerat.startsWith("RO49BTRL"), "Format IBAN generat incorect: " + ibanGenerat);
+        afirma(ibanGenerat.length() == 24, "Lungimea IBAN-ului romanesc generat trebuie sa fie de 24 caractere");
+
+        // 2. Restrictie: incercare deschidere cont cu IBAN strain (ex: Germania DE)
+        boolean aPicatIbanStrain = false;
+        try {
+            service.deschideCont("DE89370400440532013000", c, TipCont.CURENT, Moneda.EUR, 100.0);
+        } catch (FormatDateIncorectException ex) {
+            aPicatIbanStrain = true;
+        }
+        afirma(aPicatIbanStrain, "Banca nu ar trebui sa permita deschiderea unui cont cu IBAN non-romanesc");
+    }
+
+    private static void testTransferInternationalContExtern() throws Exception {
+        BancaService service = new BancaService();
+        Client c = new Client("CLI-13", "Expeditor Transfer", "1951313123456", "exp@test.ro", "0720333444");
+        service.deschideCont("RO13BTRLRONCRT0000000013", c, TipCont.CURENT, Moneda.RON, 1000.0);
+
+        // Transfer 200 RON catre un cont extern din Germania (DE) conform ISO 13616
+        // Comision extern 0.4% = 0.8 RON. Total debitat = 200.8 RON. Sold ramas = 799.2 RON.
+        service.efectueazaTransfer("RO13BTRLRONCRT0000000013", "DE89370400440532013000", 200.0, "Plata serviciu Germania");
+
+        ContBancar sursa = service.gasesteCont("RO13BTRLRONCRT0000000013");
+        afirma(Math.abs(sursa.getSold() - 799.2) < 0.001, "Soldul sursei dupa transfer extern este incorect: " + sursa.getSold());
+
+        // Verificam ca transferul extern a actualizat si matricea statistica 2D
+        double[][] matrice = service.getMatriceStatisticaLunara();
+        int lunaCurenta = java.time.LocalDate.now().getMonthValue() - 1;
+        afirma(matrice[lunaCurenta][TipTranzactie.TRANSFER.getIndexMatrice()] >= 200.0, "Matricea statistica nu a inregistrat transferul extern");
     }
 
     private static void afirma(boolean conditie, String mesajEroare) {

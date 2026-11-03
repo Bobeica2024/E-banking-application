@@ -18,17 +18,25 @@ public class ContBancar implements Serializable, Comparable<ContBancar> {
     private double sold;
     private boolean activ;
     private LocalDate dataDeschidere;
+    private String pin;
+    private int incercariPinEsuat;
 
     public ContBancar() {
         this.activ = true;
         this.dataDeschidere = LocalDate.now();
+        this.pin = "1234";
+        this.incercariPinEsuat = 0;
     }
 
     public ContBancar(String iban, Client titular, TipCont tipCont, Moneda moneda, double soldInitial) {
-        this(iban, titular, tipCont, moneda, soldInitial, true, LocalDate.now());
+        this(iban, titular, tipCont, moneda, soldInitial, true, LocalDate.now(), "1234");
     }
 
     public ContBancar(String iban, Client titular, TipCont tipCont, Moneda moneda, double sold, boolean activ, LocalDate dataDeschidere) {
+        this(iban, titular, tipCont, moneda, sold, activ, dataDeschidere, "1234");
+    }
+
+    public ContBancar(String iban, Client titular, TipCont tipCont, Moneda moneda, double sold, boolean activ, LocalDate dataDeschidere, String pin) {
         this.iban = iban;
         this.titular = titular;
         this.tipCont = tipCont;
@@ -36,6 +44,8 @@ public class ContBancar implements Serializable, Comparable<ContBancar> {
         this.sold = sold;
         this.activ = activ;
         this.dataDeschidere = dataDeschidere != null ? dataDeschidere : LocalDate.now();
+        this.pin = (pin != null && !pin.isBlank()) ? pin : "1234";
+        this.incercariPinEsuat = 0;
     }
 
     public String getIban() {
@@ -92,6 +102,34 @@ public class ContBancar implements Serializable, Comparable<ContBancar> {
 
     public void setDataDeschidere(LocalDate dataDeschidere) {
         this.dataDeschidere = dataDeschidere;
+    }
+
+    public String getPin() {
+        return pin;
+    }
+
+    public void setPin(String pin) {
+        if (pin != null && pin.matches("^\\d{4}$")) {
+            this.pin = pin;
+        } else {
+            throw new IllegalArgumentException("Codul PIN trebuie sa fie alcatuit din exact 4 cifre numerice.");
+        }
+    }
+
+    public int getIncercariPinEsuat() {
+        return incercariPinEsuat;
+    }
+
+    public void incrementeazaIncercariPinEsuat() {
+        this.incercariPinEsuat++;
+    }
+
+    public void resetIncercariPin() {
+        this.incercariPinEsuat = 0;
+    }
+
+    public int getIncercariRamase() {
+        return Math.max(0, 3 - this.incercariPinEsuat);
     }
 
     /**

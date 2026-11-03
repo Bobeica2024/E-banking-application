@@ -29,9 +29,12 @@ Aplicația simulează la un nivel complet și robust fluxul operațional al unui
 6. **Flux funcțional logic (1 p)**:
    - Deschidere -> Încărcare automată din CSV -> Operare tranzacții -> Statistici -> Salvare sincronizată la închidere.
 7. **Meniu interactiv cu opțiuni clare (1 p)**:
-   - Interfață consolă prietenoasă, cu gestionare a erorilor fără întreruperea execuției.
+   - Interfață consolă prietenoasă cu **separare pe roluri (RBAC)**:
+     - **Mod Client (E-Banking / ATM)**: Autentificare sigură cu IBAN și cod PIN (4 cifre). Acces strict la contul propriu, transferuri interne și transfrontaliere, deschidere subconturi, blocare automată la 3 încercări greșite de PIN.
+     - **Mod Operator Bancar (Back-Office & Administrare)**: Autentificare securizată cu parolă puternică de administrator. Acces exclusiv la lista globală a tuturor conturilor, deschidere conturi la ghișeu, vizualizare matrice statistică 2D, generare rapoarte text, backup și restaurare binară, deblocare conturi.
 8. **Funcționalitate completă fără erori (1 p)**:
    - Cod sursă conform standardelor Java 21, verificat și compilat curat.
+   - Suită completă de **14 teste automate** (`test.bat`), 100% de succes.
 9. **Documentație Word și JavaDoc (1 p)**:
    - Documentație completă cu diagrame UML și descrierea cerințelor.
    - JavaDoc generat automat în directorul `docs/javadoc/`.
@@ -44,6 +47,14 @@ Aplicația simulează la un nivel complet și robust fluxul operațional al unui
 ### Din linia de comandă (Windows):
 1. **Compilare**: Rulați scriptul `compile.bat`
 2. **Execuție**: Rulați scriptul `run.bat`
+3. **Testare automată**: Rulați scriptul `test.bat` (14 teste automate)
+
+### Credențiale de acces (detaliate în `CREDENTIALE_ACCES.txt`):
+* **Parolă Operator Bancar**: `Op#Secur!ty_9874Banca@PPOO` (stocată și în `data/operator_secret.txt`).
+* **Conturi Client de test (PIN implicit: `1234`)**:
+  - `RO49BTRLRONCRT0012345601` (Ion Popescu - RON)
+  - `RO12BTRLEURCRT0098765402` (Maria Ionescu - EUR)
+  - `RO78BTRLUSDDEP0055443303` (Andrei Radu - USD)
 
 ### Din IntelliJ IDEA sau Eclipse:
 - Deschideți folderul proiectului în IDE ca proiect Java standard cu JDK 21+.

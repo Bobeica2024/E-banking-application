@@ -29,6 +29,117 @@ public final class I18n {
         ro.put("MENU_TITLE", "SISTEM E-BANKING PPOO - MENIU PRINCIPAL");
         en.put("MENU_TITLE", "PPOO E-BANKING SYSTEM - MAIN MENU");
 
+        // Poarta de acces
+        ro.put("GATE_TITLE", "SISTEM E-BANKING PPOO - POARTĂ DE ACCES");
+        en.put("GATE_TITLE", "PPOO E-BANKING SYSTEM - ACCESS GATEWAY");
+
+        ro.put("GATE_OPT_1", "1. Autentificare Client (IBAN + Cod PIN)");
+        en.put("GATE_OPT_1", "1. Client Login (IBAN + PIN code)");
+
+        ro.put("GATE_OPT_2", "2. Autentificare Operator Bancar (Consolă Administrare & Statistici)");
+        en.put("GATE_OPT_2", "2. Bank Operator Login (Admin & Statistics Console)");
+
+        ro.put("GATE_OPT_3", "3. Schimbare limbă / Change language (Română / English)");
+        en.put("GATE_OPT_3", "3. Change language / Schimbare limbă (English / Română)");
+
+        ro.put("GATE_OPT_0", "0. Salvare date în fișiere și Ieșire din aplicație");
+        en.put("GATE_OPT_0", "0. Save data to files and Exit application");
+
+        // Portal Client
+        ro.put("CLIENT_MENU_TITLE", "PORTAL CLIENT E-BANKING - %s (%s)");
+        en.put("CLIENT_MENU_TITLE", "E-BANKING CLIENT PORTAL - %s (%s)");
+
+        ro.put("CLIENT_OPT_1", "1. Vizualizare sold și detalii cont curent");
+        en.put("CLIENT_OPT_1", "1. View balance and current account details");
+
+        ro.put("CLIENT_OPT_2", "2. Depunere numerar");
+        en.put("CLIENT_OPT_2", "2. Cash deposit");
+
+        ro.put("CLIENT_OPT_3", "3. Retragere numerar");
+        en.put("CLIENT_OPT_3", "3. Cash withdrawal");
+
+        ro.put("CLIENT_OPT_4", "4. Transfer bancar (intern sau internațional către conturi externe)");
+        en.put("CLIENT_OPT_4", "4. Bank transfer (internal or international cross-border)");
+
+        ro.put("CLIENT_OPT_5", "5. Plată factură utilități");
+        en.put("CLIENT_OPT_5", "5. Utility bill payment");
+
+        ro.put("CLIENT_OPT_6", "6. Istoric tranzacții personale");
+        en.put("CLIENT_OPT_6", "6. Personal transaction history");
+
+        ro.put("CLIENT_OPT_7", "7. Deschidere cont suplimentar (altă monedă / economii)");
+        en.put("CLIENT_OPT_7", "7. Open additional sub-account (currency / savings)");
+
+        ro.put("CLIENT_OPT_8", "8. Schimbare cod PIN");
+        en.put("CLIENT_OPT_8", "8. Change PIN code");
+
+        ro.put("CLIENT_OPT_0", "0. Delogare (Revenire la meniul principal)");
+        en.put("CLIENT_OPT_0", "0. Logout (Return to main menu)");
+
+        // Consola Operator
+        ro.put("OPERATOR_MENU_TITLE", "CONSOLĂ OPERATOR BANCAR & BACK-OFFICE");
+        en.put("OPERATOR_MENU_TITLE", "BANK OPERATOR & BACK-OFFICE CONSOLE");
+
+        ro.put("OPERATOR_OPT_1", "1. Vizualizare listă toate conturile bancare și soldurile");
+        en.put("OPERATOR_OPT_1", "1. View all bank accounts list and balances");
+
+        ro.put("OPERATOR_OPT_2", "2. Deschidere cont bancar nou la ghișeu");
+        en.put("OPERATOR_OPT_2", "2. Open new bank account at teller");
+
+        ro.put("OPERATOR_OPT_3", "3. Vizualizare statistici lunare (Matrice 2D fundamentală)");
+        en.put("OPERATOR_OPT_3", "3. View monthly statistics (Fundamental 2D matrix)");
+
+        ro.put("OPERATOR_OPT_4", "4. Generare raport statistic în fișier text");
+        en.put("OPERATOR_OPT_4", "4. Generate statistical report in text file");
+
+        ro.put("OPERATOR_OPT_5", "5. Salvare copie de siguranță binară (Backup .dat)");
+        en.put("OPERATOR_OPT_5", "5. Export binary backup copy (.dat)");
+
+        ro.put("OPERATOR_OPT_6", "6. Restaurare bază de date din backup binar");
+        en.put("OPERATOR_OPT_6", "6. Restore database from binary backup");
+
+        ro.put("OPERATOR_OPT_7", "7. Blocare / Deblocare cont bancar");
+        en.put("OPERATOR_OPT_7", "7. Lock / Unlock bank account");
+
+        ro.put("OPERATOR_OPT_0", "0. Delogare Operator (Revenire la meniul principal)");
+        en.put("OPERATOR_OPT_0", "0. Logout Operator (Return to main menu)");
+
+        ro.put("PROMPT_PIN", "Introduceți codul PIN al contului (4 cifre): ");
+        en.put("PROMPT_PIN", "Enter account PIN code (4 digits): ");
+
+        ro.put("PROMPT_OPERATOR_PASS", "Introduceți parola securizată de Operator: ");
+        en.put("PROMPT_OPERATOR_PASS", "Enter secure Operator password: ");
+
+        ro.put("ERR_PIN_FORMAT", "[EROARE] Codul PIN trebuie să conțină exact 4 cifre numerice!\n");
+        en.put("ERR_PIN_FORMAT", "[ERROR] PIN code must contain exactly 4 numeric digits!\n");
+
+        ro.put("ERR_OPERATOR_PASS_INCORRECT", "[SECURITATE] Parolă de operator incorectă! Accesul la consola administrativă a fost refuzat.");
+        en.put("ERR_OPERATOR_PASS_INCORRECT", "[SECURITY] Incorrect operator password! Access to admin console was denied.");
+
+        ro.put("SUCCESS_PIN_CHANGED", "\n[SUCCES] Codul PIN a fost schimbat cu succes!\n");
+        en.put("SUCCESS_PIN_CHANGED", "\n[SUCCESS] PIN code was successfully changed!\n");
+
+        ro.put("PROMPT_NEW_PIN", "Introduceți noul cod PIN (4 cifre): ");
+        en.put("PROMPT_NEW_PIN", "Enter new PIN code (4 digits): ");
+
+        ro.put("PROMPT_CONFIRM_PIN", "Confirmați noul cod PIN: ");
+        en.put("PROMPT_CONFIRM_PIN", "Confirm new PIN code: ");
+
+        ro.put("ERR_PIN_MISMATCH", "[EROARE] Codurile PIN introduse nu coincid! Reîncercați.\n");
+        en.put("ERR_PIN_MISMATCH", "[ERROR] Entered PIN codes do not match! Please try again.\n");
+
+        ro.put("SUCCESS_LOGIN_CLIENT", "\n[AUTENTIFICARE REUȘITĂ] Bun venit, %s! Sunteți conectat la contul %s.\n");
+        en.put("SUCCESS_LOGIN_CLIENT", "\n[LOGIN SUCCESSFUL] Welcome, %s! You are connected to account %s.\n");
+
+        ro.put("SUCCESS_LOGIN_OPERATOR", "\n[AUTENTIFICARE REUȘITĂ] Acces autorizat în consola Operatorului Bancar.\n");
+        en.put("SUCCESS_LOGIN_OPERATOR", "\n[LOGIN SUCCESSFUL] Authorized access granted to Bank Operator Console.\n");
+
+        ro.put("LOGOUT_CLIENT_MSG", "\n[DELOGARE] V-ați deconectat cu succes din contul de client.\n");
+        en.put("LOGOUT_CLIENT_MSG", "\n[LOGOUT] Successfully logged out of client account.\n");
+
+        ro.put("LOGOUT_OPERATOR_MSG", "\n[DELOGARE] Sesiunea de operator bancar a fost închisă.\n");
+        en.put("LOGOUT_OPERATOR_MSG", "\n[LOGOUT] Operator session successfully closed.\n");
+
         ro.put("OPT_1", "1. Vizualizare listă conturi bancare și solduri");
         en.put("OPT_1", "1. View bank accounts list and balances");
 

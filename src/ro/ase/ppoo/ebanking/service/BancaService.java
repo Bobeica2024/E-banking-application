@@ -3,6 +3,10 @@ package ro.ase.ppoo.ebanking.service;
 import ro.ase.ppoo.ebanking.exception.*;
 import ro.ase.ppoo.ebanking.model.*;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -55,8 +59,21 @@ public class BancaService {
     private final Set<Client> clientiSet;
 
     private long contorTranzactii = 1000;
+    private String parolaOperator = "Op#Secur!ty_9874Banca@PPOO";
 
     public BancaService() {
+        // Incarcare parola operator securizata din fisier daca exista
+        File fisierSecret = new File("data" + File.separator + "operator_secret.txt");
+        if (fisierSecret.exists()) {
+            try (BufferedReader reader = new BufferedReader(new FileReader(fisierSecret, StandardCharsets.UTF_8))) {
+                String line = reader.readLine();
+                if (line != null && !line.trim().isEmpty()) {
+                    this.parolaOperator = line.trim();
+                }
+            } catch (Exception ignored) {
+            }
+        }
+
         // Initializare masiv 1D
         this.rateSchimbValutar = new double[] {
                 1.0000, // RON
@@ -190,8 +207,73 @@ public class BancaService {
         }
     }
 
+    public boolean valideazaParolaOperator(String parola) {
+        return parolaOperator != null && parolaOperator.equals(parola);
+    }
+
+    public void seteazaParolaOperator(String nouaParola) {
+        if (nouaParola != null && nouaParola.length() >= 8) {
+            this.parolaOperator = nouaParola;
+        }
+    }
+
+    public ContBancar autentificaClient(String iban, String pin) throws BancarException {
+        if (iban == null || pin == null) {
+            throw new FormatDateIncorectException("IBAN-ul si codul PIN nu pot fi nule.");
+        }
+        valideazaIban(iban);
+        ContBancar cont = gasesteCont(iban);
+
+        if (!cont.isActiv()) {
+            throw new ContBlocatException("Contul " + iban + " este BLOCAT. Va rugam contactati un operator bancar.");
+        }
+
+        if (!cont.getPin().equals(pin)) {
+            cont.incrementeazaIncercariPinEsuat();
+            int ramase = cont.getIncercariRamase();
+            if (ramase == 0) {
+                cont.setActiv(false);
+                throw new ContBlocatException("Cod PIN incorect! Contul " + iban + " a fost BLOCAT automat din motive de securitate dupa 3 incercari esuate.");
+            }
+            throw new TranzactieInvalidaException("Cod PIN incorect! Mai aveti " + ramase + " incercari inainte de blocarea automata a contului.");
+        }
+
+        cont.resetIncercariPin();
+        return cont;
+    }
+
+    public String genereazaIbanRomanesc(TipCont tipCont, Moneda moneda) {
+        String tipScurt = switch (tipCont) {
+            case CURENT -> "CRT";
+            case ECONOMII -> "STU";
+            case DEPOZIT -> "DEP";
+        };
+        long seed = System.currentTimeMillis() % 10000000000L;
+        String iban;
+        int incercari = 0;
+        do {
+            incercari++;
+            long codCont = Math.abs((seed + incercari * 37L) % 10000000000L);
+            iban = String.format("RO%02dBTRL%s%s%010d",
+                    49,
+                    moneda.name(),
+                    tipScurt,
+                    codCont);
+        } while (conturiMap.containsKey(iban));
+        return iban;
+    }
+
     public void deschideCont(String iban, Client client, TipCont tipCont, Moneda moneda, double soldInitial)
             throws TranzactieInvalidaException, FormatDateIncorectException {
+        deschideCont(iban, client, tipCont, moneda, soldInitial, "1234");
+    }
+
+    public void deschideCont(String iban, Client client, TipCont tipCont, Moneda moneda, double soldInitial, String pin)
+            throws TranzactieInvalidaException, FormatDateIncorectException {
+
+        if (iban == null || !iban.trim().toUpperCase().startsWith("RO")) {
+            throw new FormatDateIncorectException("Banca noastra emite conturi exclusiv cu IBAN romanesc (prefix RO). Pentru transferuri externe, puteti folosi orice IBAN international valid.");
+        }
 
         valideazaIban(iban);
         valideazaClient(client);
@@ -203,7 +285,8 @@ public class BancaService {
             throw new TranzactieInvalidaException("Soldul initial nu poate fi negativ.");
         }
 
-        ContBancar contNou = new ContBancar(iban, client, tipCont, moneda, soldInitial);
+        String pinFinal = (pin != null && pin.matches("^\\d{4}$")) ? pin : "1234";
+        ContBancar contNou = new ContBancar(iban, client, tipCont, moneda, soldInitial, true, java.time.LocalDate.now(), pinFinal);
         conturiMap.put(iban, contNou);
         clientiSet.add(client);
 
@@ -314,18 +397,24 @@ public class BancaService {
         }
 
         ContBancar contSursa = gasesteCont(ibanSursa);
-        ContBancar contDestinatie = gasesteCont(ibanDestinatie);
-
         if (!contSursa.isActiv()) {
             throw new ContBlocatException(ibanSursa);
         }
-        if (!contDestinatie.isActiv()) {
+
+        // Cautam daca contul destinatie este intern (in banca noastra) sau extern (international)
+        ContBancar contDestinatie = conturiMap.get(ibanDestinatie);
+        if (contDestinatie == null) {
+            // Transfer extern international - validam IBAN-ul conform ISO 13616
+            valideazaIban(ibanDestinatie);
+        } else if (!contDestinatie.isActiv()) {
             throw new ContBlocatException(ibanDestinatie);
         }
 
-        // Comision transfer bancar: 0.1% pentru aceeasi moneda, 0.3% pentru conversie valutara
-        boolean necesitaConversie = contSursa.getMoneda() != contDestinatie.getMoneda();
-        double procentComision = necesitaConversie ? 0.003 : 0.001;
+        boolean esteTransferExtern = (contDestinatie == null);
+        boolean necesitaConversie = !esteTransferExtern && (contSursa.getMoneda() != contDestinatie.getMoneda());
+
+        // Comision transfer bancar: 0.1% intern aceeasi moneda, 0.3% intern conversie, 0.4% extern international
+        double procentComision = esteTransferExtern ? 0.004 : (necesitaConversie ? 0.003 : 0.001);
         double comision = Math.max(0.5, suma * procentComision);
         double totalNecesarSursa = suma + comision;
 
@@ -333,20 +422,26 @@ public class BancaService {
             throw new FonduriInsuficienteException(ibanSursa, totalNecesarSursa, contSursa.getSold());
         }
 
-        // Calcul suma creditata in contul destinatie (utilizand masivul fundamental de rate)
-        double sumaDestinatie = suma;
-        if (necesitaConversie) {
-            sumaDestinatie = converteste(suma, contSursa.getMoneda(), contDestinatie.getMoneda());
-        }
-
-        // Operare in memorie
+        // Operare in memorie cont sursa
         contSursa.retrage(totalNecesarSursa);
-        contDestinatie.depune(sumaDestinatie);
 
-        String descriereFinala = (descriere != null && !descriere.isBlank()) ? descriere : "Transfer bancar interconturi";
-        if (necesitaConversie) {
-            descriereFinala += String.format(" (Conversie: %.2f %s -> %.2f %s)",
-                    suma, contSursa.getMoneda(), sumaDestinatie, contDestinatie.getMoneda());
+        String descriereFinala;
+        if (esteTransferExtern) {
+            String codTara = ibanDestinatie.length() >= 2 ? ibanDestinatie.substring(0, 2).toUpperCase() : "";
+            descriereFinala = (descriere != null && !descriere.isBlank()) ? descriere : ("Transfer bancar extern transfrontalier (" + codTara + ")");
+        } else {
+            // Calcul suma creditata in contul destinatie intern
+            double sumaDestinatie = suma;
+            if (necesitaConversie) {
+                sumaDestinatie = converteste(suma, contSursa.getMoneda(), contDestinatie.getMoneda());
+            }
+            contDestinatie.depune(sumaDestinatie);
+
+            descriereFinala = (descriere != null && !descriere.isBlank()) ? descriere : "Transfer bancar interconturi";
+            if (necesitaConversie) {
+                descriereFinala += String.format(" (Conversie: %.2f %s -> %.2f %s)",
+                        suma, contSursa.getMoneda(), sumaDestinatie, contDestinatie.getMoneda());
+            }
         }
 
         String idTrx = genereazaIdTranzactie();
