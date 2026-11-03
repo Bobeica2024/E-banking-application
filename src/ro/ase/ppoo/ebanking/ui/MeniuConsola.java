@@ -1,9 +1,6 @@
 package ro.ase.ppoo.ebanking.ui;
 
-import ro.ase.ppoo.ebanking.exception.BancarException;
-import ro.ase.ppoo.ebanking.exception.ContInexistentException;
-import ro.ase.ppoo.ebanking.exception.FormatDateIncorectException;
-import ro.ase.ppoo.ebanking.exception.OperatiuneAnulataException;
+import ro.ase.ppoo.ebanking.exception.*;
 import ro.ase.ppoo.ebanking.i18n.I18n;
 import ro.ase.ppoo.ebanking.i18n.Limba;
 import ro.ase.ppoo.ebanking.model.*;
@@ -103,47 +100,50 @@ public class MeniuConsola {
         System.out.println("--------------------------------------------------------------------------");
         System.out.println(I18n.t("CANCEL_NOTE"));
 
-        String iban = citesteLinieSauAnulare(I18n.t("PROMPT_IBAN_ACCOUNT")).toUpperCase().replaceAll("\\s+", "");
-
         ContBancar contExistent;
-        try {
-            bancaService.valideazaIban(iban);
-            contExistent = bancaService.gasesteCont(iban);
-        } catch (BancarException ex) {
-            System.err.println("\n" + I18n.t("ERR_BANKING_HEADER") + ex.getMessage());
-            return;
-        }
-
-        if (!contExistent.isActiv()) {
-            System.err.println("\n" + I18n.t("ERR_BANKING_HEADER") + "Contul " + iban + " este BLOCAT. Vă rugăm contactați un operator bancar.");
-            return;
+        while (true) {
+            String iban = citesteLinieSauAnulare(I18n.t("PROMPT_IBAN_ACCOUNT")).toUpperCase().replaceAll("\\s+", "");
+            try {
+                bancaService.valideazaIban(iban);
+                contExistent = bancaService.gasesteCont(iban);
+                if (!contExistent.isActiv()) {
+                    System.out.println("\n" + I18n.t("ERR_BANKING_HEADER") + "Contul " + iban + " este BLOCAT. Vă rugăm contactați un operator bancar.");
+                    return;
+                }
+                break;
+            } catch (BancarException ex) {
+                System.out.println("\n" + I18n.t("ERR_BANKING_HEADER") + ex.getMessage());
+                System.out.println("Vă rugăm reintroduceți un IBAN valid (sau tastați '0' pt anulare).\n");
+            }
         }
 
         ContBancar contLogat;
         if (contExistent.isNecesitaResetarePin()) {
-            System.out.println("\n==========================================================================");
-            System.out.println("  [RESETARE OBLIGATORIE COD PIN]");
-            System.out.println("  Operatorul bancar a aprobat procedura de resetare a codului PIN.");
-            System.out.println("  Vă rugăm să vă definiți noul cod PIN introducându-l de două ori.");
-            System.out.println("==========================================================================");
+            System.out.println("\n--- RESETARE OBLIGATORIE COD PIN ---");
+            System.out.println("Vă rugăm să vă definiți noul cod PIN introducându-l de două ori:");
 
             String nouPin = citestePinNouCuConfirmare(I18n.t("PROMPT_NEW_PIN"), I18n.t("PROMPT_CONFIRM_PIN"));
             try {
-                bancaService.finalizeazaResetarePin(iban, nouPin);
+                bancaService.finalizeazaResetarePin(contExistent.getIban(), nouPin);
             } catch (BancarException ex) {
-                System.err.println("[EROARE] " + ex.getMessage());
+                System.out.println("[EROARE] " + ex.getMessage());
                 return;
             }
-            System.out.println("\n[SUCCES] Noul cod PIN a fost setat cu succes!");
-            System.out.println("[INFO] La următoarele logări îl veți introduce o singură dată, ca în mod normal.");
+            System.out.println("\n[SUCCES] Noul cod PIN a fost actualizat cu succes!");
             contLogat = contExistent;
         } else {
-            String pin = citestePin(I18n.t("PROMPT_PIN"));
-            try {
-                contLogat = bancaService.autentificaClient(iban, pin);
-            } catch (BancarException ex) {
-                System.err.println("\n" + I18n.t("ERR_BANKING_HEADER") + ex.getMessage());
-                return;
+            while (true) {
+                String pin = citestePin(I18n.t("PROMPT_PIN"));
+                try {
+                    contLogat = bancaService.autentificaClient(contExistent.getIban(), pin);
+                    break;
+                } catch (ContBlocatException ex) {
+                    System.out.println("\n" + I18n.t("ERR_BANKING_HEADER") + ex.getMessage());
+                    return;
+                } catch (BancarException ex) {
+                    System.out.println("\n" + I18n.t("ERR_BANKING_HEADER") + ex.getMessage());
+                    System.out.println("Vă rugăm reintroduceți codul PIN corect (sau tastați '0' pt anulare).\n");
+                }
             }
         }
 
@@ -303,7 +303,6 @@ public class MeniuConsola {
 
         bancaService.deschideCont(iban, cont.getTitular(), tipCont, moneda, soldInitial, pin);
         System.out.print(I18n.t("SUCCESS_OPEN_ACC", cont.getTitular().getNume(), iban, tipCont.name(), moneda.name(), soldInitial, moneda.name()));
-        System.out.println("[INFO] Noul subcont a fost asociat profilului dumneavoastră și este activ.");
     }
 
     private void optiuneClientSchimbarePin(ContBancar cont) throws OperatiuneAnulataException, BancarException {
@@ -312,14 +311,13 @@ public class MeniuConsola {
 
         String pinActual = citestePin("Introduceți codul PIN actual pentru verificare: ");
         if (!cont.getPin().equals(pinActual)) {
-            System.out.println("[EROARE] Codul PIN actual este incorect! Operațiunea a fost anulată din motive de securitate.");
+            System.out.println("[EROARE] Codul PIN actual este incorect! Operațiunea a fost anulată.");
             return;
         }
 
         String nouPin = citestePinNouCuConfirmare(I18n.t("PROMPT_NEW_PIN"), I18n.t("PROMPT_CONFIRM_PIN"));
         bancaService.schimbaPin(cont.getIban(), pinActual, nouPin);
         System.out.print(I18n.t("SUCCESS_PIN_CHANGED"));
-        System.out.println("[CONFIDENȚIALITATE] Noul cod PIN a fost actualizat. Conform standardelor bancare (PCI-DSS), niciun angajat sau operator al băncii nu are acces la codul dumneavoastră PIN.");
     }
 
     // =========================================================================
@@ -332,10 +330,13 @@ public class MeniuConsola {
         System.out.println("--------------------------------------------------------------------------");
         System.out.println(I18n.t("CANCEL_NOTE"));
 
-        String parola = citesteInputSecurizat(I18n.t("PROMPT_OPERATOR_PASS"));
-        if (!bancaService.valideazaParolaOperator(parola)) {
-            System.err.println("\n" + I18n.t("ERR_OPERATOR_PASS_INCORRECT"));
-            return;
+        while (true) {
+            String parola = citesteInputSecurizat(I18n.t("PROMPT_OPERATOR_PASS"));
+            if (bancaService.valideazaParolaOperator(parola)) {
+                break;
+            }
+            System.out.println("\n" + I18n.t("ERR_OPERATOR_PASS_INCORRECT"));
+            System.out.println("Vă rugăm reîncercați parola (sau tastați '0' pt anulare).\n");
         }
 
         System.out.println(I18n.t("SUCCESS_LOGIN_OPERATOR"));
@@ -425,7 +426,6 @@ public class MeniuConsola {
 
             bancaService.schimbaParolaOperator(parolaVeche, nouaParola);
             System.out.print(I18n.t("SUCCESS_PASS_CHANGED"));
-            System.out.println("[INFO] Noua parolă a fost actualizată și în 'data\\operator_secret.txt'.");
             break;
         }
     }
@@ -468,7 +468,6 @@ public class MeniuConsola {
         bancaService.deschideCont(iban, client, tipCont, moneda, soldInitial, pin);
 
         System.out.print(I18n.t("SUCCESS_OPEN_ACC", nume, iban, tipCont.name(), moneda.name(), soldInitial, moneda.name()));
-        System.out.println("[SECURITATE] Codul PIN a fost configurat și confirmat de client pe tastatura securizată (confidențial - neafișat operatorului).");
     }
 
     private void optiuneAfisareConturi() {
@@ -572,29 +571,19 @@ public class MeniuConsola {
         System.out.println("--------------------------------------------------------------------------");
         System.out.println("Acțiuni administrative disponibile:");
         System.out.println("  1. " + (cont.isActiv() ? "Blocare cont (dezactivare)" : "Deblocare cont (activare)"));
-        System.out.println("  2. Resetare număr încercări PIN eșuate (păstrează PIN-ul existent)");
-        System.out.println("  3. Inițiere procedură RESETARE PIN (clientul va introduce noul PIN de 2 ori la logare)");
+        System.out.println("  2. Inițiere procedură RESETARE PIN (clientul va introduce noul PIN de 2 ori la logare)");
         System.out.println("  0. Anulare / Înapoi");
 
-        int opt = citesteInt("Selectați acțiunea dorită (0-3): ", 0, 3);
+        int opt = citesteInt("Selectați acțiunea dorită (0-2): ", 0, 2);
         switch (opt) {
             case 1 -> {
                 bancaService.blocheazaDeblocheazaCont(cont.getIban(), !cont.isActiv());
-                if (cont.isActiv()) {
-                    cont.resetIncercariPin();
-                }
                 String stareNoua = cont.isActiv() ? I18n.t("STATE_ACTIVE") : I18n.t("STATE_LOCKED");
                 System.out.print(String.format(I18n.t("SUCCESS_LOCK_UPDATE"), stareNoua));
             }
             case 2 -> {
-                bancaService.reseteazaIncercariPin(cont.getIban());
-                System.out.println("\n[SUCCES] Numărul de încercări greșite a fost resetat la 0! Contul este activ cu PIN-ul curent.");
-            }
-            case 3 -> {
                 bancaService.solicitaResetarePin(cont.getIban());
-                System.out.println("\n[SUCCES] Procedura de Resetare PIN a fost activată pentru contul " + cont.getIban() + "!");
-                System.out.println("[INFO] La următoarea logare, clientul va fi solicitat automat să introducă noul cod PIN de două ori.");
-                System.out.println("[CONFIDENȚIALITATE] PIN-ul este definit exclusiv de client, operatorul neavând acces la el.");
+                System.out.println("\n[SUCCES] Procedura de Resetare PIN a fost activată pentru contul " + cont.getIban() + ".");
             }
             case 0 -> throw new OperatiuneAnulataException();
         }
@@ -703,8 +692,7 @@ public class MeniuConsola {
             try {
                 bancaService.valideazaComplexitatePin(p1);
             } catch (FormatDateIncorectException ex) {
-                System.out.println("\n[EROARE SECURITATE PIN] " + ex.getMessage());
-                System.out.println("Vă rugăm să alegeți un cod PIN mai sigur conform standardelor bancare.\n");
+                System.out.println("\n[EROARE] " + ex.getMessage() + "\n");
                 continue;
             }
 

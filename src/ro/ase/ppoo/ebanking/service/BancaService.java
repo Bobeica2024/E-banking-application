@@ -435,6 +435,9 @@ public class BancaService {
     public void blocheazaDeblocheazaCont(String iban, boolean stareActiva) throws ContInexistentException {
         ContBancar cont = gasesteCont(iban);
         cont.setActiv(stareActiva);
+        if (stareActiva) {
+            cont.resetIncercariPin();
+        }
     }
 
     // =========================================================================

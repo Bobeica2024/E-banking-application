@@ -44,16 +44,11 @@ public class Main {
 
         // 1. Incarcare date initiale din fisiere (Cerinta 1, 2)
         try {
-            System.out.println("[INIT] Se încarcă datele conturilor din '" + FISIER_CONTURI + "'...");
             csvStorage.incarcaConturi(FISIER_CONTURI, bancaService);
-            System.out.printf("[INIT] Încărcare finalizată: %d conturi încărcate în memorie.\n", bancaService.getToateConturile().size());
-
-            System.out.println("[INIT] Se încarcă istoricul tranzacțiilor din '" + FISIER_TRANZACTII + "'...");
             csvStorage.incarcaTranzactii(FISIER_TRANZACTII, bancaService);
-            System.out.printf("[INIT] Încărcare finalizată: %d tranzacții încărcate în memorie.\n", bancaService.getToateTranzactiile().size());
-
             bancaService.recalculeazaMatriciStatistice();
-            System.out.println("[INIT] Matricea statistică fundamentală a fost inițializată cu succes.");
+            System.out.printf("[INIT] Bază de date inițializată cu succes (%d conturi, %d tranzacții în memorie).\n",
+                    bancaService.getToateConturile().size(), bancaService.getToateTranzactiile().size());
         } catch (IOException | FormatDateIncorectException e) {
             System.err.println("[AVERTISMENT LA INIȚIALIZARE] " + e.getMessage());
             System.out.println("[INIT] Se continuă pornirea aplicației cu starea existentă.");

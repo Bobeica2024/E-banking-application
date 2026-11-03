@@ -116,8 +116,8 @@ public final class I18n {
         ro.put("PROMPT_CONFIRM_PASS", "Confirmați noua parolă: ");
         en.put("PROMPT_CONFIRM_PASS", "Confirm new password: ");
 
-        ro.put("SUCCESS_PASS_CHANGED", "\n[SUCCES] Parola de operator a fost schimbată și salvată pe disc cu succes!\n");
-        en.put("SUCCESS_PASS_CHANGED", "\n[SUCCESS] Operator password has been changed and saved to disk successfully!\n");
+        ro.put("SUCCESS_PASS_CHANGED", "\n[SUCCES] Noua parolă a fost actualizată cu succes!\n");
+        en.put("SUCCESS_PASS_CHANGED", "\n[SUCCESS] New password has been successfully updated!\n");
 
         ro.put("ERR_PASS_MISMATCH", "[EROARE] Parolele introduse nu coincid! Reîncercați.\n");
         en.put("ERR_PASS_MISMATCH", "[ERROR] Entered passwords do not match! Please try again.\n");
@@ -134,8 +134,8 @@ public final class I18n {
         ro.put("ERR_OPERATOR_PASS_INCORRECT", "[SECURITATE] Parolă de operator incorectă! Accesul la consola administrativă a fost refuzat.");
         en.put("ERR_OPERATOR_PASS_INCORRECT", "[SECURITY] Incorrect operator password! Access to admin console was denied.");
 
-        ro.put("SUCCESS_PIN_CHANGED", "\n[SUCCES] Codul PIN a fost schimbat cu succes!\n");
-        en.put("SUCCESS_PIN_CHANGED", "\n[SUCCESS] PIN code was successfully changed!\n");
+        ro.put("SUCCESS_PIN_CHANGED", "\n[SUCCES] Noul cod PIN a fost actualizat cu succes!\n");
+        en.put("SUCCESS_PIN_CHANGED", "\n[SUCCESS] New PIN code has been successfully updated!\n");
 
         ro.put("PROMPT_NEW_PIN", "Introduceți noul cod PIN (4 cifre): ");
         en.put("PROMPT_NEW_PIN", "Enter new PIN code (4 digits): ");
