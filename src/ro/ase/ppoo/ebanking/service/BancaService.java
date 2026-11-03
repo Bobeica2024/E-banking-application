@@ -217,6 +217,46 @@ public class BancaService {
         }
     }
 
+    public void valideazaComplexitateParola(String parola) throws FormatDateIncorectException {
+        if (parola == null || parola.length() < 10) {
+            throw new FormatDateIncorectException("Parola de operator trebuie sa contina minim 10 caractere.");
+        }
+        if (!parola.matches(".*[A-Z].*")) {
+            throw new FormatDateIncorectException("Parola de operator trebuie sa contina cel putin o litera mare (A-Z).");
+        }
+        if (!parola.matches(".*[a-z].*")) {
+            throw new FormatDateIncorectException("Parola de operator trebuie sa contina cel putin o litera mica (a-z).");
+        }
+        if (!parola.matches(".*\\d.*")) {
+            throw new FormatDateIncorectException("Parola de operator trebuie sa contina cel putin o cifra (0-9).");
+        }
+        if (!parola.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};':\",.<>/?].*")) {
+            throw new FormatDateIncorectException("Parola de operator trebuie sa contina cel putin un caracter special (!@#$%^&* etc.).");
+        }
+    }
+
+    public void schimbaParolaOperator(String parolaVeche, String parolaNoua) throws BancarException {
+        if (!valideazaParolaOperator(parolaVeche)) {
+            throw new TranzactieInvalidaException("Parola actuala de operator este incorecta.");
+        }
+        valideazaComplexitateParola(parolaNoua);
+        if (parolaVeche.equals(parolaNoua)) {
+            throw new TranzactieInvalidaException("Noua parola nu poate fi identica cu vechea parola.");
+        }
+        this.parolaOperator = parolaNoua;
+
+        File fisierSecret = new File("data" + File.separator + "operator_secret.txt");
+        try {
+            if (fisierSecret.getParentFile() != null) {
+                fisierSecret.getParentFile().mkdirs();
+            }
+            try (java.io.BufferedWriter writer = new java.io.BufferedWriter(new java.io.FileWriter(fisierSecret, StandardCharsets.UTF_8))) {
+                writer.write(parolaNoua);
+            }
+        } catch (Exception ignored) {
+        }
+    }
+
     public ContBancar autentificaClient(String iban, String pin) throws BancarException {
         if (iban == null || pin == null) {
             throw new FormatDateIncorectException("IBAN-ul si codul PIN nu pot fi nule.");
@@ -226,6 +266,10 @@ public class BancaService {
 
         if (!cont.isActiv()) {
             throw new ContBlocatException("Contul " + iban + " este BLOCAT. Va rugam contactati un operator bancar.");
+        }
+
+        if (cont.isNecesitaResetarePin()) {
+            throw new TranzactieInvalidaException("Contul " + iban + " necesita resetarea obligatorie a codului PIN.");
         }
 
         if (!cont.getPin().equals(pin)) {
@@ -240,6 +284,73 @@ public class BancaService {
 
         cont.resetIncercariPin();
         return cont;
+    }
+
+    public void reseteazaIncercariPin(String iban) throws ContInexistentException {
+        ContBancar cont = gasesteCont(iban);
+        cont.resetIncercariPin();
+        cont.setActiv(true);
+    }
+
+    public void solicitaResetarePin(String iban) throws ContInexistentException {
+        ContBancar cont = gasesteCont(iban);
+        cont.setNecesitaResetarePin(true);
+        cont.resetIncercariPin();
+        cont.setActiv(true);
+    }
+
+    /**
+     * Validează complexitatea codului PIN conform standardelor de securitate bancară (PCI-DSS, ISO 9564-1, EMVCo).
+     * Respinge automat:
+     *  - coduri care nu conțin exact 4 cifre
+     *  - coduri formate din 4 cifre identice (ex: 0000, 1111, 2222, ..., 9999)
+     *  - secvențe crescătoare sau descrescătoare triviale (ex: 0123, 1234, 2345, 9876, 4321, 3210 etc.)
+     *  - tipare vizuale triviale de tastatură (ex: 2580, 0852)
+     *
+     * @param pin codul PIN de validat
+     * @throws FormatDateIncorectException dacă PIN-ul nu respectă cerințele de securitate
+     */
+    public void valideazaComplexitatePin(String pin) throws FormatDateIncorectException {
+        if (pin == null || !pin.matches("^\\d{4}$")) {
+            throw new FormatDateIncorectException("Codul PIN trebuie să conțină exact 4 cifre numerice (0-9).");
+        }
+
+        // 1. Respingere 4 cifre identice (0000, 1111, 2222, etc.)
+        if (pin.charAt(0) == pin.charAt(1) && pin.charAt(1) == pin.charAt(2) && pin.charAt(2) == pin.charAt(3)) {
+            throw new FormatDateIncorectException("Securitate insuficientă: Nu se permit 4 cifre identice (" + pin + ").");
+        }
+
+        // 2. Respingere secvențe consecutive directe (0123, 1234, 2345, 3456, 4567, 5678, 6789, 9876, 8765, 7654, 6543, 5432, 4321, 3210)
+        String secvente = "0123456789 9876543210";
+        if (secvente.contains(pin)) {
+            throw new FormatDateIncorectException("Securitate insuficientă: Nu se permit secvențe numerice consecutive (" + pin + ").");
+        }
+
+        // 3. Respingere tipare de coloană pe PIN-pad
+        if ("2580".equals(pin) || "0852".equals(pin)) {
+            throw new FormatDateIncorectException("Securitate insuficientă: Combinația " + pin + " reprezintă o linie verticală previzibilă pe tastatură.");
+        }
+    }
+
+    public void schimbaPin(String iban, String pinVechi, String nouPin) throws BancarException {
+        ContBancar cont = gasesteCont(iban);
+        if (!cont.getPin().equals(pinVechi)) {
+            throw new TranzactieInvalidaException("Codul PIN actual este incorect.");
+        }
+        valideazaComplexitatePin(nouPin);
+        if (pinVechi.equals(nouPin)) {
+            throw new TranzactieInvalidaException("Noul cod PIN nu poate fi identic cu cel vechi.");
+        }
+        cont.setPin(nouPin);
+    }
+
+    public void finalizeazaResetarePin(String iban, String nouPin) throws BancarException {
+        valideazaComplexitatePin(nouPin);
+        ContBancar cont = gasesteCont(iban);
+        cont.setPin(nouPin);
+        cont.setNecesitaResetarePin(false);
+        cont.resetIncercariPin();
+        cont.setActiv(true);
     }
 
     public String genereazaIbanRomanesc(TipCont tipCont, Moneda moneda) {
@@ -265,7 +376,7 @@ public class BancaService {
 
     public void deschideCont(String iban, Client client, TipCont tipCont, Moneda moneda, double soldInitial)
             throws TranzactieInvalidaException, FormatDateIncorectException {
-        deschideCont(iban, client, tipCont, moneda, soldInitial, "1234");
+        deschideCont(iban, client, tipCont, moneda, soldInitial, "4829");
     }
 
     public void deschideCont(String iban, Client client, TipCont tipCont, Moneda moneda, double soldInitial, String pin)
@@ -285,7 +396,8 @@ public class BancaService {
             throw new TranzactieInvalidaException("Soldul initial nu poate fi negativ.");
         }
 
-        String pinFinal = (pin != null && pin.matches("^\\d{4}$")) ? pin : "1234";
+        String pinFinal = (pin != null && !pin.trim().isEmpty()) ? pin.trim() : "4829";
+        valideazaComplexitatePin(pinFinal);
         ContBancar contNou = new ContBancar(iban, client, tipCont, moneda, soldInitial, true, java.time.LocalDate.now(), pinFinal);
         conturiMap.put(iban, contNou);
         clientiSet.add(client);

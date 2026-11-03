@@ -39,6 +39,7 @@ public class BancaTest {
         ruleazaTest("Test securitate si validare parola operator", BancaTest::testSecuritateParolaOperator);
         ruleazaTest("Test generare IBAN RO si restrictie deschidere", BancaTest::testGenerareIbanSiRestrictieDeschidere);
         ruleazaTest("Test transfer international catre IBAN extern", BancaTest::testTransferInternationalContExtern);
+        ruleazaTest("Test resetare PIN de operator si redefinire client", BancaTest::testResetarePinDeCatreOperatorSiReintroducereClient);
 
         System.out.println("==========================================================");
         System.out.printf("REZULTAT TESTE: %d / %d TESTE REUSITE (100%% SUCCESS)\n", testeTrecute, testeTotale);
@@ -431,10 +432,10 @@ public class BancaTest {
     private static void testAutentificarePinSiBlocareLaTreiIncercari() throws Exception {
         BancaService service = new BancaService();
         Client c = new Client("CLI-11", "Client Securitate", "1951111123456", "sec@test.ro", "0720111999");
-        service.deschideCont("RO11BTRLRONCRT0000000011", c, TipCont.CURENT, Moneda.RON, 500.0, "9876");
+        service.deschideCont("RO11BTRLRONCRT0000000011", c, TipCont.CURENT, Moneda.RON, 500.0, "8429");
 
         // 1. Autentificare reusita cu PIN corect
-        ContBancar auth = service.autentificaClient("RO11BTRLRONCRT0000000011", "9876");
+        ContBancar auth = service.autentificaClient("RO11BTRLRONCRT0000000011", "8429");
         afirma(auth != null, "Autentificarea cu PIN corect a esuat");
         afirma(auth.isActiv(), "Contul ar trebui sa fie activ");
 
@@ -471,8 +472,44 @@ public class BancaTest {
         // 5. Deblocare cont de catre operator
         service.blocheazaDeblocheazaCont("RO11BTRLRONCRT0000000011", true);
         auth.resetIncercariPin();
-        ContBancar reauth = service.autentificaClient("RO11BTRLRONCRT0000000011", "9876");
-        afirma(reauth != null && reauth.isActiv(), "Contul deblocat nu se poate autentifica");
+        ContBancar reauth = service.autentificaClient("RO11BTRLRONCRT0000000011", "8429");
+        afirma(reauth != null && reauth.isActiv(), "Re-autentificarea dupa deblocare a esuat");
+
+        // 6. Testare reguli de complexitate PIN conform standardelor bancare (PCI-DSS & EMVCo)
+        boolean errIdentice = false;
+        try {
+            service.valideazaComplexitatePin("0000");
+        } catch (FormatDateIncorectException ex) {
+            errIdentice = true;
+        }
+        afirma(errIdentice, "Trebuia sa respinga PIN cu cifre identice (0000)");
+
+        boolean errSecventa = false;
+        try {
+            service.valideazaComplexitatePin("1234");
+        } catch (FormatDateIncorectException ex) {
+            errSecventa = true;
+        }
+        afirma(errSecventa, "Trebuia sa respinga PIN cu secventa crescatoare (1234)");
+
+        boolean errDesc = false;
+        try {
+            service.valideazaComplexitatePin("4321");
+        } catch (FormatDateIncorectException ex) {
+            errDesc = true;
+        }
+        afirma(errDesc, "Trebuia sa respinga PIN cu secventa descrescatoare (4321)");
+
+        boolean errColoana = false;
+        try {
+            service.valideazaComplexitatePin("2580");
+        } catch (FormatDateIncorectException ex) {
+            errColoana = true;
+        }
+        afirma(errColoana, "Trebuia sa respinga PIN de tip coloana (2580)");
+
+        service.valideazaComplexitatePin("8429");
+        service.valideazaComplexitatePin("7182");
     }
 
     private static void testSecuritateParolaOperator() throws Exception {
@@ -480,6 +517,31 @@ public class BancaTest {
         afirma(!service.valideazaParolaOperator("banca2026"), "Parola simpla/gresita a fost acceptata");
         afirma(!service.valideazaParolaOperator("admin"), "Parola 'admin' nu trebuie acceptata");
         afirma(service.valideazaParolaOperator("Op#Secur!ty_9874Banca@PPOO"), "Parola securizata de operator nu a fost validata corect");
+
+        // Test respingere parole fara complexitate
+        boolean aPicatScurta = false;
+        try {
+            service.valideazaComplexitateParola("Pass1!");
+        } catch (FormatDateIncorectException e) {
+            aPicatScurta = true;
+        }
+        afirma(aPicatScurta, "Trebuia sa respinga parola sub 10 caractere");
+
+        boolean aPicatFaraSpecial = false;
+        try {
+            service.valideazaComplexitateParola("ParolaLungaFaraSpecial123");
+        } catch (FormatDateIncorectException e) {
+            aPicatFaraSpecial = true;
+        }
+        afirma(aPicatFaraSpecial, "Trebuia sa respinga parola fara caractere speciale");
+
+        // Test schimbare parola cu succes
+        service.schimbaParolaOperator("Op#Secur!ty_9874Banca@PPOO", "Noua#Parola!2026_Secure");
+        afirma(service.valideazaParolaOperator("Noua#Parola!2026_Secure"), "Noua parola nu este activa");
+
+        // Restauram parola initiala
+        service.schimbaParolaOperator("Noua#Parola!2026_Secure", "Op#Secur!ty_9874Banca@PPOO");
+        afirma(service.valideazaParolaOperator("Op#Secur!ty_9874Banca@PPOO"), "Restaurarea parolei initiale a esuat");
     }
 
     private static void testGenerareIbanSiRestrictieDeschidere() throws Exception {
@@ -517,6 +579,43 @@ public class BancaTest {
         double[][] matrice = service.getMatriceStatisticaLunara();
         int lunaCurenta = java.time.LocalDate.now().getMonthValue() - 1;
         afirma(matrice[lunaCurenta][TipTranzactie.TRANSFER.getIndexMatrice()] >= 200.0, "Matricea statistica nu a inregistrat transferul extern");
+    }
+
+    private static void testResetarePinDeCatreOperatorSiReintroducereClient() throws Exception {
+        BancaService service = new BancaService();
+        Client c = new Client("CLI-14", "Client Resetare", "1951414123456", "reset@test.ro", "0720444555");
+        service.deschideCont("RO14BTRLRONCRT0000000014", c, TipCont.CURENT, Moneda.RON, 500.0, "7391");
+
+        ContBancar cont = service.gasesteCont("RO14BTRLRONCRT0000000014");
+        afirma(!cont.isNecesitaResetarePin(), "Contul nou nu ar trebui sa necesite resetare PIN");
+
+        // 1. Operatorul solicita procedura de Resetare PIN
+        service.solicitaResetarePin("RO14BTRLRONCRT0000000014");
+        afirma(cont.isNecesitaResetarePin(), "Contul trebuia sa fie marcat cu necesitaResetarePin = true");
+
+        // 2. O incercare normala de autentificare fara redefinire PIN este blocata
+        boolean aPicatLogareSimpla = false;
+        try {
+            service.autentificaClient("RO14BTRLRONCRT0000000014", "7391");
+        } catch (TranzactieInvalidaException ex) {
+            aPicatLogareSimpla = true;
+        }
+        afirma(aPicatLogareSimpla, "Autentificarea directa trebuia sa fie refuzata cand se cere resetare obligatorie de PIN");
+
+        // 3. Clientul isi redefineste noul PIN (format valid 4 cifre securizat)
+        service.finalizeazaResetarePin("RO14BTRLRONCRT0000000014", "8462");
+        afirma(!cont.isNecesitaResetarePin(), "necesitaResetarePin trebuia sa devina false dupa finalizare");
+        afirma(cont.getPin().equals("8462"), "Noul PIN nu a fost setat corespunzator");
+
+        // 4. Urmatoarea logare se realizeaza normal o singura data cu noul PIN
+        ContBancar logat = service.autentificaClient("RO14BTRLRONCRT0000000014", "8462");
+        afirma(logat != null && logat.isActiv(), "Logarea normala cu noul PIN a esuat");
+
+        // 5. Operatorul reseteaza doar numarul de incercari esuate fara a cere schimbare PIN
+        cont.incrementeazaIncercariPinEsuat();
+        afirma(cont.getIncercariPinEsuat() == 1, "Numarul de incercari esuate trebuie sa fie 1");
+        service.reseteazaIncercariPin("RO14BTRLRONCRT0000000014");
+        afirma(cont.getIncercariPinEsuat() == 0, "Numarul de incercari esuate trebuia sa fie resetat la 0");
     }
 
     private static void afirma(boolean conditie, String mesajEroare) {

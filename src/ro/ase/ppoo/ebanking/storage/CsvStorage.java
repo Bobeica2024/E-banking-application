@@ -17,7 +17,7 @@ import java.util.List;
 public class CsvStorage {
 
     private static final String CSV_DELIMITER = ",";
-    private static final String HEADER_CONTURI = "IBAN,NumeTitular,CNP,Email,Telefon,TipCont,Moneda,Sold,Activ,PIN";
+    private static final String HEADER_CONTURI = "IBAN,NumeTitular,CNP,Email,Telefon,TipCont,Moneda,Sold,Activ,PIN,NecesitaResetarePin";
     private static final String HEADER_TRANZACTII = "IdTranzactie,DataOra,IbanSursa,IbanDestinatie,TipTranzactie,Suma,Moneda,Comision,Status,Descriere";
 
     /**
@@ -54,9 +54,10 @@ public class CsvStorage {
                     double sold = Double.parseDouble(tokens[7].trim());
                     boolean activ = Boolean.parseBoolean(tokens[8].trim());
                     String pin = (tokens.length >= 10 && !tokens[9].trim().isEmpty()) ? tokens[9].trim() : "1234";
+                    boolean necesitaResetare = (tokens.length >= 11 && !tokens[10].trim().isEmpty()) ? Boolean.parseBoolean(tokens[10].trim()) : false;
 
                     Client client = new Client("CLI-" + cnp.substring(Math.max(0, cnp.length() - 4)), nume, cnp, email, telefon);
-                    ContBancar cont = new ContBancar(iban, client, tipCont, moneda, sold, activ, null, pin);
+                    ContBancar cont = new ContBancar(iban, client, tipCont, moneda, sold, activ, null, pin, necesitaResetare);
 
                     service.adaugaContInMemorie(cont);
                 } catch (IllegalArgumentException ex) {
@@ -136,7 +137,7 @@ public class CsvStorage {
 
             for (ContBancar c : conturi) {
                 Client t = c.getTitular();
-                String linie = String.format("%s,%s,%s,%s,%s,%s,%s,%.2f,%b,%s",
+                String linie = String.format("%s,%s,%s,%s,%s,%s,%s,%.2f,%b,%s,%b",
                         c.getIban(),
                         t != null ? t.getNume() : "",
                         t != null ? t.getCnp() : "",
@@ -146,7 +147,8 @@ public class CsvStorage {
                         c.getMoneda().name(),
                         c.getSold(),
                         c.isActiv(),
-                        c.getPin() != null ? c.getPin() : "1234");
+                        c.getPin() != null ? c.getPin() : "1234",
+                        c.isNecesitaResetarePin());
                 writer.write(linie);
                 writer.newLine();
             }

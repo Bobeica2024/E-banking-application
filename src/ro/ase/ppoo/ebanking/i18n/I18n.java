@@ -70,8 +70,8 @@ public final class I18n {
         ro.put("CLIENT_OPT_7", "7. Deschidere cont suplimentar (altă monedă / economii)");
         en.put("CLIENT_OPT_7", "7. Open additional sub-account (currency / savings)");
 
-        ro.put("CLIENT_OPT_8", "8. Schimbare cod PIN");
-        en.put("CLIENT_OPT_8", "8. Change PIN code");
+        ro.put("CLIENT_OPT_8", "8. Resetare / Schimbare cod PIN");
+        en.put("CLIENT_OPT_8", "8. Reset / Change PIN code");
 
         ro.put("CLIENT_OPT_0", "0. Delogare (Revenire la meniul principal)");
         en.put("CLIENT_OPT_0", "0. Logout (Return to main menu)");
@@ -101,8 +101,26 @@ public final class I18n {
         ro.put("OPERATOR_OPT_7", "7. Blocare / Deblocare cont bancar");
         en.put("OPERATOR_OPT_7", "7. Lock / Unlock bank account");
 
+        ro.put("OPERATOR_OPT_8", "8. Schimbare parolă Operator");
+        en.put("OPERATOR_OPT_8", "8. Change Operator password");
+
         ro.put("OPERATOR_OPT_0", "0. Delogare Operator (Revenire la meniul principal)");
         en.put("OPERATOR_OPT_0", "0. Logout Operator (Return to main menu)");
+
+        ro.put("PROMPT_OLD_PASS", "Introduceți parola actuală de Operator: ");
+        en.put("PROMPT_OLD_PASS", "Enter current Operator password: ");
+
+        ro.put("PROMPT_NEW_PASS", "Introduceți noua parolă securizată: ");
+        en.put("PROMPT_NEW_PASS", "Enter new secure password: ");
+
+        ro.put("PROMPT_CONFIRM_PASS", "Confirmați noua parolă: ");
+        en.put("PROMPT_CONFIRM_PASS", "Confirm new password: ");
+
+        ro.put("SUCCESS_PASS_CHANGED", "\n[SUCCES] Parola de operator a fost schimbată și salvată pe disc cu succes!\n");
+        en.put("SUCCESS_PASS_CHANGED", "\n[SUCCESS] Operator password has been changed and saved to disk successfully!\n");
+
+        ro.put("ERR_PASS_MISMATCH", "[EROARE] Parolele introduse nu coincid! Reîncercați.\n");
+        en.put("ERR_PASS_MISMATCH", "[ERROR] Entered passwords do not match! Please try again.\n");
 
         ro.put("PROMPT_PIN", "Introduceți codul PIN al contului (4 cifre): ");
         en.put("PROMPT_PIN", "Enter account PIN code (4 digits): ");

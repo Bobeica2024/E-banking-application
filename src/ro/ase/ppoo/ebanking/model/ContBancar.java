@@ -20,23 +20,29 @@ public class ContBancar implements Serializable, Comparable<ContBancar> {
     private LocalDate dataDeschidere;
     private String pin;
     private int incercariPinEsuat;
+    private boolean necesitaResetarePin;
 
     public ContBancar() {
         this.activ = true;
         this.dataDeschidere = LocalDate.now();
         this.pin = "1234";
         this.incercariPinEsuat = 0;
+        this.necesitaResetarePin = false;
     }
 
     public ContBancar(String iban, Client titular, TipCont tipCont, Moneda moneda, double soldInitial) {
-        this(iban, titular, tipCont, moneda, soldInitial, true, LocalDate.now(), "1234");
+        this(iban, titular, tipCont, moneda, soldInitial, true, LocalDate.now(), "1234", false);
     }
 
     public ContBancar(String iban, Client titular, TipCont tipCont, Moneda moneda, double sold, boolean activ, LocalDate dataDeschidere) {
-        this(iban, titular, tipCont, moneda, sold, activ, dataDeschidere, "1234");
+        this(iban, titular, tipCont, moneda, sold, activ, dataDeschidere, "1234", false);
     }
 
     public ContBancar(String iban, Client titular, TipCont tipCont, Moneda moneda, double sold, boolean activ, LocalDate dataDeschidere, String pin) {
+        this(iban, titular, tipCont, moneda, sold, activ, dataDeschidere, pin, false);
+    }
+
+    public ContBancar(String iban, Client titular, TipCont tipCont, Moneda moneda, double sold, boolean activ, LocalDate dataDeschidere, String pin, boolean necesitaResetarePin) {
         this.iban = iban;
         this.titular = titular;
         this.tipCont = tipCont;
@@ -46,6 +52,7 @@ public class ContBancar implements Serializable, Comparable<ContBancar> {
         this.dataDeschidere = dataDeschidere != null ? dataDeschidere : LocalDate.now();
         this.pin = (pin != null && !pin.isBlank()) ? pin : "1234";
         this.incercariPinEsuat = 0;
+        this.necesitaResetarePin = necesitaResetarePin;
     }
 
     public String getIban() {
@@ -130,6 +137,14 @@ public class ContBancar implements Serializable, Comparable<ContBancar> {
 
     public int getIncercariRamase() {
         return Math.max(0, 3 - this.incercariPinEsuat);
+    }
+
+    public boolean isNecesitaResetarePin() {
+        return necesitaResetarePin;
+    }
+
+    public void setNecesitaResetarePin(boolean necesitaResetarePin) {
+        this.necesitaResetarePin = necesitaResetarePin;
     }
 
     /**
