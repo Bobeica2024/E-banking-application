@@ -9,7 +9,7 @@ public class ContBlocatException extends BancarException {
     private final String iban;
 
     public ContBlocatException(String iban) {
-        super("Contul bancar " + iban + " este blocat sau inactiv. Operatiunea financiara a fost refuzata.");
+        super("Contul bancar " + iban + " este blocat sau inactiv. Operațiunea financiară a fost refuzată.");
         this.iban = iban;
     }
 

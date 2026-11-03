@@ -219,29 +219,29 @@ public class BancaService {
 
     public void valideazaComplexitateParola(String parola) throws FormatDateIncorectException {
         if (parola == null || parola.length() < 10) {
-            throw new FormatDateIncorectException("Parola de operator trebuie sa contina minim 10 caractere.");
+            throw new FormatDateIncorectException("Parola de operator trebuie să conțină minimum 10 caractere.");
         }
         if (!parola.matches(".*[A-Z].*")) {
-            throw new FormatDateIncorectException("Parola de operator trebuie sa contina cel putin o litera mare (A-Z).");
+            throw new FormatDateIncorectException("Parola de operator trebuie să conțină cel puțin o literă mare (A-Z).");
         }
         if (!parola.matches(".*[a-z].*")) {
-            throw new FormatDateIncorectException("Parola de operator trebuie sa contina cel putin o litera mica (a-z).");
+            throw new FormatDateIncorectException("Parola de operator trebuie să conțină cel puțin o literă mică (a-z).");
         }
         if (!parola.matches(".*\\d.*")) {
-            throw new FormatDateIncorectException("Parola de operator trebuie sa contina cel putin o cifra (0-9).");
+            throw new FormatDateIncorectException("Parola de operator trebuie să conțină cel puțin o cifră (0-9).");
         }
         if (!parola.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};':\",.<>/?].*")) {
-            throw new FormatDateIncorectException("Parola de operator trebuie sa contina cel putin un caracter special (!@#$%^&* etc.).");
+            throw new FormatDateIncorectException("Parola de operator trebuie să conțină cel puțin un caracter special (!@#$%^&* etc.).");
         }
     }
 
     public void schimbaParolaOperator(String parolaVeche, String parolaNoua) throws BancarException {
         if (!valideazaParolaOperator(parolaVeche)) {
-            throw new TranzactieInvalidaException("Parola actuala de operator este incorecta.");
+            throw new TranzactieInvalidaException("Parola actuală de operator este incorectă.");
         }
         valideazaComplexitateParola(parolaNoua);
         if (parolaVeche.equals(parolaNoua)) {
-            throw new TranzactieInvalidaException("Noua parola nu poate fi identica cu vechea parola.");
+            throw new TranzactieInvalidaException("Noua parolă nu poate fi identică cu vechea parolă.");
         }
         this.parolaOperator = parolaNoua;
 
@@ -259,17 +259,17 @@ public class BancaService {
 
     public ContBancar autentificaClient(String iban, String pin) throws BancarException {
         if (iban == null || pin == null) {
-            throw new FormatDateIncorectException("IBAN-ul si codul PIN nu pot fi nule.");
+            throw new FormatDateIncorectException("IBAN-ul și codul PIN nu pot fi nule.");
         }
         valideazaIban(iban);
         ContBancar cont = gasesteCont(iban);
 
         if (!cont.isActiv()) {
-            throw new ContBlocatException("Contul " + iban + " este BLOCAT. Va rugam contactati un operator bancar.");
+            throw new ContBlocatException("Contul " + iban + " este BLOCAT. Vă rugăm să contactați un operator bancar.");
         }
 
         if (cont.isNecesitaResetarePin()) {
-            throw new TranzactieInvalidaException("Contul " + iban + " necesita resetarea obligatorie a codului PIN.");
+            throw new TranzactieInvalidaException("Contul " + iban + " necesită resetarea obligatorie a codului PIN.");
         }
 
         if (!cont.getPin().equals(pin)) {
@@ -277,9 +277,9 @@ public class BancaService {
             int ramase = cont.getIncercariRamase();
             if (ramase == 0) {
                 cont.setActiv(false);
-                throw new ContBlocatException("Cod PIN incorect! Contul " + iban + " a fost BLOCAT automat din motive de securitate dupa 3 incercari esuate.");
+                throw new ContBlocatException("Cod PIN incorect! Contul " + iban + " a fost BLOCAT automat din motive de securitate după 3 încercări eșuate.");
             }
-            throw new TranzactieInvalidaException("Cod PIN incorect! Mai aveti " + ramase + " incercari inainte de blocarea automata a contului.");
+            throw new TranzactieInvalidaException("Cod PIN incorect! Mai aveți " + ramase + " încercări înainte de blocarea automată a contului.");
         }
 
         cont.resetIncercariPin();
@@ -383,17 +383,17 @@ public class BancaService {
             throws TranzactieInvalidaException, FormatDateIncorectException {
 
         if (iban == null || !iban.trim().toUpperCase().startsWith("RO")) {
-            throw new FormatDateIncorectException("Banca noastra emite conturi exclusiv cu IBAN romanesc (prefix RO). Pentru transferuri externe, puteti folosi orice IBAN international valid.");
+            throw new FormatDateIncorectException("Banca noastră emite conturi exclusiv cu IBAN românesc (prefix RO). Pentru transferuri externe, puteți folosi orice IBAN internațional valid.");
         }
 
         valideazaIban(iban);
         valideazaClient(client);
 
         if (conturiMap.containsKey(iban)) {
-            throw new TranzactieInvalidaException("Exista deja un cont bancar inregistrat cu IBAN-ul: " + iban);
+            throw new TranzactieInvalidaException("Există deja un cont bancar înregistrat cu IBAN-ul: " + iban);
         }
         if (soldInitial < 0) {
-            throw new TranzactieInvalidaException("Soldul initial nu poate fi negativ.");
+            throw new TranzactieInvalidaException("Soldul inițial nu poate fi negativ.");
         }
 
         String pinFinal = (pin != null && !pin.trim().isEmpty()) ? pin.trim() : "4829";
@@ -406,7 +406,7 @@ public class BancaService {
             String idTrx = genereazaIdTranzactie();
             Tranzactie t = new Tranzactie(idTrx, LocalDateTime.now(), iban, iban,
                     TipTranzactie.DEPUNERE, soldInitial, moneda, 0.0,
-                    StatusTranzactie.FINALIZATA, "Depunere sold initial la deschidere cont");
+                    StatusTranzactie.FINALIZATA, "Depunere sold inițial la deschidere cont");
             tranzactiiList.add(t);
             actualizeazaMatriceStatistica(t);
         }
@@ -448,7 +448,7 @@ public class BancaService {
             throws BancarException {
 
         if (suma <= 0) {
-            throw new TranzactieInvalidaException("Suma de depus trebuie sa fie strict pozitiva.");
+            throw new TranzactieInvalidaException("Suma de depus trebuie să fie strict pozitivă.");
         }
 
         ContBancar cont = gasesteCont(iban);
@@ -472,7 +472,7 @@ public class BancaService {
             throws BancarException {
 
         if (suma <= 0) {
-            throw new TranzactieInvalidaException("Suma de retras trebuie sa fie strict pozitiva.");
+            throw new TranzactieInvalidaException("Suma de retras trebuie să fie strict pozitivă.");
         }
 
         ContBancar cont = gasesteCont(iban);
@@ -504,11 +504,11 @@ public class BancaService {
             throws BancarException {
 
         if (suma <= 0) {
-            throw new TranzactieInvalidaException("Suma de transferat trebuie sa fie strict pozitiva.");
+            throw new TranzactieInvalidaException("Suma de transferat trebuie să fie strict pozitivă.");
         }
 
         if (ibanSursa.equalsIgnoreCase(ibanDestinatie)) {
-            throw new TranzactieInvalidaException("Contul sursa si contul destinatie nu pot fi identice pentru transfer bancar.");
+            throw new TranzactieInvalidaException("Contul sursă și contul destinație nu pot fi identice pentru transfer bancar.");
         }
 
         ContBancar contSursa = gasesteCont(ibanSursa);
@@ -573,7 +573,7 @@ public class BancaService {
             throws BancarException {
 
         if (suma <= 0) {
-            throw new TranzactieInvalidaException("Suma facturii trebuie sa fie strict pozitiva.");
+            throw new TranzactieInvalidaException("Suma facturii trebuie să fie strict pozitivă.");
         }
 
         ContBancar cont = gasesteCont(ibanSursa);
@@ -587,7 +587,7 @@ public class BancaService {
 
         cont.retrage(suma);
 
-        String descriere = "Plata factura utilitati: " + denumireFurnizor + " (Factura #" + numarFactura + ")";
+        String descriere = "Plată factură utilități: " + denumireFurnizor + " (Factură #" + numarFactura + ")";
         String idTrx = genereazaIdTranzactie();
         Tranzactie trx = new Tranzactie(idTrx, LocalDateTime.now(), ibanSursa, "TREZORERIE-" + denumireFurnizor.toUpperCase().replaceAll("\\s+", "-"),
                 TipTranzactie.PLATA_FACTURA, suma, cont.getMoneda(), 0.0,
@@ -732,14 +732,14 @@ public class BancaService {
         // Verificare limite conform standardului international ISO 13616 (15..34 caractere)
         if (cleanIban.length() < 15 || cleanIban.length() > 34) {
             throw new FormatDateIncorectException(String.format(
-                    "Lungimea IBAN-ului este invalida (%d caractere). Conform standardului ISO 13616, un IBAN trebuie sa aiba intre 15 si 34 de caractere.",
+                    "Lungimea IBAN-ului este invalidă (%d caractere). Conform standardului ISO 13616, un IBAN trebuie să aibă între 15 și 34 de caractere.",
                     cleanIban.length()));
         }
 
         // Structura internationala generala: 2 litere (cod tara) + 2 cifre (control) + caractere alfanumerice
         if (!cleanIban.matches("^[A-Z]{2}[0-9]{2}[A-Z0-9]{11,30}$")) {
             throw new FormatDateIncorectException(
-                    "Format IBAN invalid: trebuie sa inceapa cu 2 litere (cod tara), urmate de 2 cifre de control si caractere alfanumerice.");
+                    "Format IBAN invalid: trebuie să înceapă cu 2 litere (cod țară), urmate de 2 cifre de control și caractere alfanumerice.");
         }
 
         String codTara = cleanIban.substring(0, 2);
@@ -749,12 +749,12 @@ public class BancaService {
         if (regula != null) {
             if (cleanIban.length() != regula.lungimeFixa()) {
                 throw new FormatDateIncorectException(String.format(
-                        "IBAN-ul pentru %s (%s) trebuie sa aiba exact %d caractere. Cel introdus are %d caractere.",
+                        "IBAN-ul pentru %s (%s) trebuie să aibă exact %d caractere. Cel introdus are %d caractere.",
                         regula.denumireTara(), codTara, regula.lungimeFixa(), cleanIban.length()));
             }
             if (regula.regex() != null && !cleanIban.matches(regula.regex())) {
                 throw new FormatDateIncorectException(String.format(
-                        "Format IBAN invalid pentru %s (%s): structura ceruta este %s.",
+                        "Format IBAN invalid pentru %s (%s): structura cerută este %s.",
                         regula.denumireTara(), codTara, regula.formatAsteptat()));
             }
             return;
@@ -766,115 +766,115 @@ public class BancaService {
             case "US" -> { // Statele Unite ale Americii (ABA Routing + Numar Cont)
                 if (cleanIban.length() < 16 || cleanIban.length() > 34) {
                     throw new FormatDateIncorectException(
-                            "IBAN-ul pentru SUA (US) in format international cross-border ISO 13616 trebuie sa aiba intre 16 si 34 de caractere (US + 2 cifre control + 9 cifre routing ABA + cont).");
+                            "IBAN-ul pentru SUA (US) în format internațional cross-border ISO 13616 trebuie să aibă între 16 și 34 de caractere (US + 2 cifre de control + 9 cifre routing ABA + cont).");
                 }
             }
             case "CA" -> { // Canada (Transit + Numar Cont)
                 if (cleanIban.length() < 15 || cleanIban.length() > 30) {
                     throw new FormatDateIncorectException(
-                            "IBAN-ul pentru Canada (CA) in format international ISO 13616 trebuie sa aiba intre 15 si 30 de caractere (CA + 2 cifre control + tranzit + cont).");
+                            "IBAN-ul pentru Canada (CA) în format internațional ISO 13616 trebuie să aibă între 15 și 30 de caractere (CA + 2 cifre de control + tranzit + cont).");
                 }
             }
             case "AU" -> { // Australia (BSB Code + Numar Cont)
                 if (cleanIban.length() < 15 || cleanIban.length() > 30) {
                     throw new FormatDateIncorectException(
-                            "IBAN-ul pentru Australia (AU) in format international ISO 13616 trebuie sa aiba intre 15 si 30 de caractere (AU + 2 cifre control + 6 cifre BSB + cont).");
+                            "IBAN-ul pentru Australia (AU) în format internațional ISO 13616 trebuie să aibă între 15 și 30 de caractere (AU + 2 cifre de control + 6 cifre BSB + cont).");
                 }
             }
             case "NZ" -> { // Noua Zeelanda (Cod Banca/Sucursala + Numar Cont)
                 if (cleanIban.length() < 15 || cleanIban.length() > 30) {
                     throw new FormatDateIncorectException(
-                            "IBAN-ul pentru Noua Zeelanda (NZ) in format international ISO 13616 trebuie sa aiba intre 15 si 30 de caractere (NZ + 2 cifre control + cod banca/sucursala + cont).");
+                            "IBAN-ul pentru Noua Zeelandă (NZ) în format internațional ISO 13616 trebuie să aibă între 15 și 30 de caractere (NZ + 2 cifre de control + cod bancă/sucursală + cont).");
                 }
             }
             case "NP" -> { // Nepal (Muncitori / remiteri de fonduri)
                 if (cleanIban.length() < 15 || cleanIban.length() > 34) {
                     throw new FormatDateIncorectException(
-                            "IBAN-ul pentru Nepal (NP) in format international cross-border ISO 13616 trebuie sa aiba intre 15 si 34 de caractere.");
+                            "IBAN-ul pentru Nepal (NP) în format internațional cross-border ISO 13616 trebuie să aibă între 15 și 34 de caractere.");
                 }
             }
             case "IN" -> { // India (Transferuri / afaceri IT & forta de munca)
                 if (cleanIban.length() < 15 || cleanIban.length() > 34) {
                     throw new FormatDateIncorectException(
-                            "IBAN-ul pentru India (IN) in format international cross-border ISO 13616 trebuie sa aiba intre 15 si 34 de caractere (IN + 2 cifre control + cod IFSC + cont).");
+                            "IBAN-ul pentru India (IN) în format internațional cross-border ISO 13616 trebuie să aibă între 15 și 34 de caractere (IN + 2 cifre de control + cod IFSC + cont).");
                 }
             }
             case "LK" -> { // Sri Lanka
                 if (cleanIban.length() < 15 || cleanIban.length() > 34) {
                     throw new FormatDateIncorectException(
-                            "IBAN-ul pentru Sri Lanka (LK) in format international cross-border ISO 13616 trebuie sa aiba intre 15 si 34 de caractere.");
+                            "IBAN-ul pentru Sri Lanka (LK) în format internațional cross-border ISO 13616 trebuie să aibă între 15 și 34 de caractere.");
                 }
             }
             case "VN" -> { // Vietnam
                 if (cleanIban.length() < 15 || cleanIban.length() > 34) {
                     throw new FormatDateIncorectException(
-                            "IBAN-ul pentru Vietnam (VN) in format international cross-border ISO 13616 trebuie sa aiba intre 15 si 34 de caractere.");
+                            "IBAN-ul pentru Vietnam (VN) în format internațional cross-border ISO 13616 trebuie să aibă între 15 și 34 de caractere.");
                 }
             }
             case "PH" -> { // Filipine
                 if (cleanIban.length() < 15 || cleanIban.length() > 34) {
                     throw new FormatDateIncorectException(
-                            "IBAN-ul pentru Filipine (PH) in format international cross-border ISO 13616 trebuie sa aiba intre 15 si 34 de caractere.");
+                            "IBAN-ul pentru Filipine (PH) în format internațional cross-border ISO 13616 trebuie să aibă între 15 și 34 de caractere.");
                 }
             }
             case "BD" -> { // Bangladesh (Muncitori straini in Romania)
                 if (cleanIban.length() < 15 || cleanIban.length() > 34) {
                     throw new FormatDateIncorectException(
-                            "IBAN-ul pentru Bangladesh (BD) in format international cross-border ISO 13616 trebuie sa aiba intre 15 si 34 de caractere.");
+                            "IBAN-ul pentru Bangladesh (BD) în format internațional cross-border ISO 13616 trebuie să aibă între 15 și 34 de caractere.");
                 }
             }
             case "CN" -> { // China (Comert international si transferuri bancare B2B)
                 if (cleanIban.length() < 15 || cleanIban.length() > 34) {
                     throw new FormatDateIncorectException(
-                            "IBAN-ul pentru China (CN) in format international cross-border ISO 13616 trebuie sa aiba intre 15 si 34 de caractere (CN + 2 cifre control + CNAPS + cont).");
+                            "IBAN-ul pentru China (CN) în format internațional cross-border ISO 13616 trebuie să aibă între 15 și 34 de caractere (CN + 2 cifre de control + CNAPS + cont).");
                 }
             }
             case "JP" -> { // Japonia (Partener comercial si investitii)
                 if (cleanIban.length() < 15 || cleanIban.length() > 34) {
                     throw new FormatDateIncorectException(
-                            "IBAN-ul pentru Japonia (JP) in format international cross-border ISO 13616 trebuie sa aiba intre 15 si 34 de caractere (JP + 2 cifre control + cod Zengin + cont).");
+                            "IBAN-ul pentru Japonia (JP) în format internațional cross-border ISO 13616 trebuie să aibă între 15 și 34 de caractere (JP + 2 cifre de control + cod Zengin + cont).");
                 }
             }
             case "KR" -> { // Coreea de Sud (Investitii industriale in Romania)
                 if (cleanIban.length() < 15 || cleanIban.length() > 34) {
                     throw new FormatDateIncorectException(
-                            "IBAN-ul pentru Coreea de Sud (KR) in format international cross-border ISO 13616 trebuie sa aiba intre 15 si 34 de caractere.");
+                            "IBAN-ul pentru Coreea de Sud (KR) în format internațional cross-border ISO 13616 trebuie să aibă între 15 și 34 de caractere.");
                 }
             }
             case "SG" -> { // Singapore (Centru financiar global)
                 if (cleanIban.length() < 15 || cleanIban.length() > 34) {
                     throw new FormatDateIncorectException(
-                            "IBAN-ul pentru Singapore (SG) in format international cross-border ISO 13616 trebuie sa aiba intre 15 si 34 de caractere.");
+                            "IBAN-ul pentru Singapore (SG) în format internațional cross-border ISO 13616 trebuie să aibă între 15 și 34 de caractere.");
                 }
             }
             case "HK" -> { // Hong Kong (Hub financiar)
                 if (cleanIban.length() < 15 || cleanIban.length() > 34) {
                     throw new FormatDateIncorectException(
-                            "IBAN-ul pentru Hong Kong (HK) in format international cross-border ISO 13616 trebuie sa aiba intre 15 si 34 de caractere.");
+                            "IBAN-ul pentru Hong Kong (HK) în format internațional cross-border ISO 13616 trebuie să aibă între 15 și 34 de caractere.");
                 }
             }
             case "MY" -> { // Malaezia
                 if (cleanIban.length() < 15 || cleanIban.length() > 34) {
                     throw new FormatDateIncorectException(
-                            "IBAN-ul pentru Malaezia (MY) in format international cross-border ISO 13616 trebuie sa aiba intre 15 si 34 de caractere.");
+                            "IBAN-ul pentru Malaezia (MY) în format internațional cross-border ISO 13616 trebuie să aibă între 15 și 34 de caractere.");
                 }
             }
             case "TH" -> { // Thailanda
                 if (cleanIban.length() < 15 || cleanIban.length() > 34) {
                     throw new FormatDateIncorectException(
-                            "IBAN-ul pentru Thailanda (TH) in format international cross-border ISO 13616 trebuie sa aiba intre 15 si 34 de caractere.");
+                            "IBAN-ul pentru Thailanda (TH) în format internațional cross-border ISO 13616 trebuie să aibă între 15 și 34 de caractere.");
                 }
             }
             case "ID" -> { // Indonezia (Comert international / forta de munca)
                 if (cleanIban.length() < 15 || cleanIban.length() > 34) {
                     throw new FormatDateIncorectException(
-                            "IBAN-ul pentru Indonezia (ID) in format international cross-border ISO 13616 trebuie sa aiba intre 15 si 34 de caractere.");
+                            "IBAN-ul pentru Indonezia (ID) în format internațional cross-border ISO 13616 trebuie să aibă între 15 și 34 de caractere.");
                 }
             }
             case "TW" -> { // Taiwan (Sector tehnologic IT)
                 if (cleanIban.length() < 15 || cleanIban.length() > 34) {
                     throw new FormatDateIncorectException(
-                            "IBAN-ul pentru Taiwan (TW) in format international cross-border ISO 13616 trebuie sa aiba intre 15 si 34 de caractere.");
+                            "IBAN-ul pentru Taiwan (TW) în format internațional cross-border ISO 13616 trebuie să aibă între 15 și 34 de caractere.");
                 }
             }
         }
@@ -885,16 +885,16 @@ public class BancaService {
             throw new FormatDateIncorectException("Datele clientului lipsesc.");
         }
         if (client.getNume() == null || client.getNume().trim().length() < 3) {
-            throw new FormatDateIncorectException("Numele clientului trebuie sa contina minim 3 caractere.");
+            throw new FormatDateIncorectException("Numele clientului trebuie să conțină minimum 3 caractere.");
         }
         if (client.getCnp() == null || !client.getCnp().matches("^\\d{13}$")) {
-            throw new FormatDateIncorectException("CNP invalid. Trebuie sa contina exact 13 cifre numerice.");
+            throw new FormatDateIncorectException("CNP invalid. Trebuie să conțină exact 13 cifre numerice.");
         }
         if (client.getEmail() == null || !client.getEmail().contains("@") || !client.getEmail().contains(".")) {
-            throw new FormatDateIncorectException("Adresa de email este invalida.");
+            throw new FormatDateIncorectException("Adresa de e-mail este invalidă.");
         }
         if (client.getTelefon() == null || client.getTelefon().trim().length() < 10) {
-            throw new FormatDateIncorectException("Numarul de telefon este invalid (minim 10 caractere).");
+            throw new FormatDateIncorectException("Numărul de telefon este invalid (minimum 10 caractere).");
         }
     }
 

@@ -33,17 +33,17 @@ public final class I18n {
         ro.put("GATE_TITLE", "SISTEM E-BANKING PPOO - POARTĂ DE ACCES");
         en.put("GATE_TITLE", "PPOO E-BANKING SYSTEM - ACCESS GATEWAY");
 
-        ro.put("GATE_OPT_1", "1. Autentificare Client (IBAN + Cod PIN)");
-        en.put("GATE_OPT_1", "1. Client Login (IBAN + PIN code)");
+        ro.put("GATE_OPT_1", "1. Autentificare client (IBAN + cod PIN)");
+        en.put("GATE_OPT_1", "1. Client login (IBAN + PIN code)");
 
-        ro.put("GATE_OPT_2", "2. Autentificare Operator Bancar (Consolă Administrare & Statistici)");
-        en.put("GATE_OPT_2", "2. Bank Operator Login (Admin & Statistics Console)");
+        ro.put("GATE_OPT_2", "2. Autentificare operator bancar (consolă administrare & statistici)");
+        en.put("GATE_OPT_2", "2. Bank operator login (admin & statistics console)");
 
         ro.put("GATE_OPT_3", "3. Schimbare limbă / Change language (Română / English)");
         en.put("GATE_OPT_3", "3. Change language / Schimbare limbă (English / Română)");
 
-        ro.put("GATE_OPT_0", "0. Salvare date în fișiere și Ieșire din aplicație");
-        en.put("GATE_OPT_0", "0. Save data to files and Exit application");
+        ro.put("GATE_OPT_0", "0. Salvare date în fișiere și ieșire din aplicație");
+        en.put("GATE_OPT_0", "0. Save data to files and exit application");
 
         // Portal Client
         ro.put("CLIENT_MENU_TITLE", "PORTAL CLIENT E-BANKING - %s (%s)");
@@ -71,10 +71,10 @@ public final class I18n {
         en.put("CLIENT_OPT_7", "7. Open additional sub-account (currency / savings)");
 
         ro.put("CLIENT_OPT_8", "8. Resetare / Schimbare cod PIN");
-        en.put("CLIENT_OPT_8", "8. Reset / Change PIN code");
+        en.put("CLIENT_OPT_8", "8. Reset / change PIN code");
 
         ro.put("CLIENT_OPT_0", "0. Delogare (Revenire la meniul principal)");
-        en.put("CLIENT_OPT_0", "0. Logout (Return to main menu)");
+        en.put("CLIENT_OPT_0", "0. Logout (return to main menu)");
 
         // Consola Operator
         ro.put("OPERATOR_MENU_TITLE", "CONSOLĂ OPERATOR BANCAR & BACK-OFFICE");
@@ -87,7 +87,7 @@ public final class I18n {
         en.put("OPERATOR_OPT_2", "2. Open new bank account at teller");
 
         ro.put("OPERATOR_OPT_3", "3. Vizualizare statistici lunare (Matrice 2D fundamentală)");
-        en.put("OPERATOR_OPT_3", "3. View monthly statistics (Fundamental 2D matrix)");
+        en.put("OPERATOR_OPT_3", "3. View monthly statistics (fundamental 2D matrix)");
 
         ro.put("OPERATOR_OPT_4", "4. Generare raport statistic în fișier text");
         en.put("OPERATOR_OPT_4", "4. Generate statistical report in text file");
@@ -101,14 +101,14 @@ public final class I18n {
         ro.put("OPERATOR_OPT_7", "7. Blocare / Deblocare cont bancar");
         en.put("OPERATOR_OPT_7", "7. Lock / Unlock bank account");
 
-        ro.put("OPERATOR_OPT_8", "8. Schimbare parolă Operator");
-        en.put("OPERATOR_OPT_8", "8. Change Operator password");
+        ro.put("OPERATOR_OPT_8", "8. Schimbare parolă operator");
+        en.put("OPERATOR_OPT_8", "8. Change operator password");
 
-        ro.put("OPERATOR_OPT_0", "0. Delogare Operator (Revenire la meniul principal)");
-        en.put("OPERATOR_OPT_0", "0. Logout Operator (Return to main menu)");
+        ro.put("OPERATOR_OPT_0", "0. Delogare operator (revenire la meniul principal)");
+        en.put("OPERATOR_OPT_0", "0. Logout operator (return to main menu)");
 
-        ro.put("PROMPT_OLD_PASS", "Introduceți parola actuală de Operator: ");
-        en.put("PROMPT_OLD_PASS", "Enter current Operator password: ");
+        ro.put("PROMPT_OLD_PASS", "Introduceți parola actuală de operator: ");
+        en.put("PROMPT_OLD_PASS", "Enter current operator password: ");
 
         ro.put("PROMPT_NEW_PASS", "Introduceți noua parolă securizată: ");
         en.put("PROMPT_NEW_PASS", "Enter new secure password: ");
@@ -125,8 +125,8 @@ public final class I18n {
         ro.put("PROMPT_PIN", "Introduceți codul PIN al contului (4 cifre): ");
         en.put("PROMPT_PIN", "Enter account PIN code (4 digits): ");
 
-        ro.put("PROMPT_OPERATOR_PASS", "Introduceți parola securizată de Operator: ");
-        en.put("PROMPT_OPERATOR_PASS", "Enter secure Operator password: ");
+        ro.put("PROMPT_OPERATOR_PASS", "Introduceți parola securizată de operator: ");
+        en.put("PROMPT_OPERATOR_PASS", "Enter secure operator password: ");
 
         ro.put("ERR_PIN_FORMAT", "[EROARE] Codul PIN trebuie să conțină exact 4 cifre numerice!\n");
         en.put("ERR_PIN_FORMAT", "[ERROR] PIN code must contain exactly 4 numeric digits!\n");
@@ -149,8 +149,8 @@ public final class I18n {
         ro.put("SUCCESS_LOGIN_CLIENT", "\n[AUTENTIFICARE REUȘITĂ] Bun venit, %s! Sunteți conectat la contul %s.\n");
         en.put("SUCCESS_LOGIN_CLIENT", "\n[LOGIN SUCCESSFUL] Welcome, %s! You are connected to account %s.\n");
 
-        ro.put("SUCCESS_LOGIN_OPERATOR", "\n[AUTENTIFICARE REUȘITĂ] Acces autorizat în consola Operatorului Bancar.\n");
-        en.put("SUCCESS_LOGIN_OPERATOR", "\n[LOGIN SUCCESSFUL] Authorized access granted to Bank Operator Console.\n");
+        ro.put("SUCCESS_LOGIN_OPERATOR", "\n[AUTENTIFICARE REUȘITĂ] Acces autorizat în consola de operator.\n");
+        en.put("SUCCESS_LOGIN_OPERATOR", "\n[LOGIN SUCCESSFUL] Authorized access granted to operator console.\n");
 
         ro.put("LOGOUT_CLIENT_MSG", "\n[DELOGARE] V-ați deconectat cu succes din contul de client.\n");
         en.put("LOGOUT_CLIENT_MSG", "\n[LOGOUT] Successfully logged out of client account.\n");
@@ -180,13 +180,13 @@ public final class I18n {
         en.put("OPT_7", "7. Transaction history (global or filtered by IBAN)");
 
         ro.put("OPT_8", "8. Vizualizare statistici lunare (Matrice 2D fundamentală)");
-        en.put("OPT_8", "8. View monthly statistics (Fundamental 2D matrix)");
+        en.put("OPT_8", "8. View monthly statistics (fundamental 2D matrix)");
 
         ro.put("OPT_9", "9. Generare raport statistic în fișier text");
         en.put("OPT_9", "9. Generate statistical report in text file");
 
         ro.put("OPT_10", "10. Salvare copie de siguranță binară (Backup .dat)");
-        en.put("OPT_10", "10. Export binary backup copy (Audit .dat)");
+        en.put("OPT_10", "10. Export binary backup copy (audit .dat)");
 
         ro.put("OPT_11", "11. Restaurare bază de date din backup binar");
         en.put("OPT_11", "11. Restore database from binary backup");
@@ -198,13 +198,19 @@ public final class I18n {
         en.put("OPT_13", "13. Change language / Schimbare limbă (English / Română)");
 
         ro.put("OPT_0", " 0. Salvare date în fișiere și Ieșire din aplicație");
-        en.put("OPT_0", " 0. Save data to files and Exit application");
+        en.put("OPT_0", " 0. Save data to files and exit application");
 
         ro.put("PROMPT_SELECT_OPT", "Selectați opțiunea dorită: ");
         en.put("PROMPT_SELECT_OPT", "Select desired option: ");
 
         ro.put("PRESS_ENTER", "Apăsați ENTER pentru a reveni la meniul principal...");
         en.put("PRESS_ENTER", "Press ENTER to return to the main menu...");
+
+        ro.put("CONTINUE_CLIENT", "\n[ENTER pentru a continua în portalul client...]");
+        en.put("CONTINUE_CLIENT", "\n[ENTER to continue in client portal...]");
+
+        ro.put("CONTINUE_OPERATOR", "\n[ENTER pentru a continua în consola de operator...]");
+        en.put("CONTINUE_OPERATOR", "\n[ENTER to continue in operator console...]");
 
         ro.put("CANCEL_NOTE", "(Notă: Puteți tasta '0' în orice moment pentru a anula operațiunea)\n");
         en.put("CANCEL_NOTE", "(Note: You can type '0' at any time to cancel the operation)\n");
@@ -250,6 +256,12 @@ public final class I18n {
 
         ro.put("TOTAL_FUNDS_EUR", "Total fonduri bancă (echivalent EUR): %,12.2f €\n");
         en.put("TOTAL_FUNDS_EUR", "Total bank funds (EUR equivalent): %,12.2f €\n");
+
+        ro.put("TOTAL_FUNDS_USD", "Total fonduri bancă (echivalent USD): %,12.2f $\n");
+        en.put("TOTAL_FUNDS_USD", "Total bank funds (USD equivalent): %,12.2f $\n");
+
+        ro.put("TOTAL_FUNDS_GBP", "Total fonduri bancă (echivalent GBP): %,12.2f £\n");
+        en.put("TOTAL_FUNDS_GBP", "Total bank funds (GBP equivalent): %,12.2f £\n");
 
         // =====================================================================
         // OPTIUNEA 2: DESCHIDERE CONT NOU
@@ -302,8 +314,8 @@ public final class I18n {
         ro.put("PROMPT_AMOUNT_DEPOSIT", "Sumă de depus: ");
         en.put("PROMPT_AMOUNT_DEPOSIT", "Deposit amount: ");
 
-        ro.put("PROMPT_DESC_DEPOSIT", "Detalii / Descriere depunere (apăsați ENTER pt 'Depunere numerar'): ");
-        en.put("PROMPT_DESC_DEPOSIT", "Deposit details / description (press ENTER for 'Cash deposit'): ");
+        ro.put("PROMPT_DESC_DEPOSIT", "Detalii / Descriere depunere (apăsați ENTER pt 'Depunere numerar', sau 0 pentru anulare tranzacție): ");
+        en.put("PROMPT_DESC_DEPOSIT", "Deposit details / description (press ENTER for 'Cash deposit', or 0 to cancel transaction): ");
 
         ro.put("DEFAULT_DESC_DEPOSIT", "Depunere numerar");
         en.put("DEFAULT_DESC_DEPOSIT", "Cash deposit");
@@ -320,8 +332,8 @@ public final class I18n {
         ro.put("PROMPT_AMOUNT_WITHDRAW", "Sumă de retras: ");
         en.put("PROMPT_AMOUNT_WITHDRAW", "Withdrawal amount: ");
 
-        ro.put("PROMPT_DESC_WITHDRAW", "Detalii / Descriere retragere (apăsați ENTER pt 'Retragere numerar'): ");
-        en.put("PROMPT_DESC_WITHDRAW", "Withdrawal details / description (press ENTER for 'Cash withdrawal'): ");
+        ro.put("PROMPT_DESC_WITHDRAW", "Detalii / Descriere retragere (apăsați ENTER pt 'Retragere numerar', sau 0 pentru anulare tranzacție): ");
+        en.put("PROMPT_DESC_WITHDRAW", "Withdrawal details / description (press ENTER for 'Cash withdrawal', or 0 to cancel transaction): ");
 
         ro.put("DEFAULT_DESC_WITHDRAW", "Retragere numerar");
         en.put("DEFAULT_DESC_WITHDRAW", "Cash withdrawal");
@@ -336,10 +348,10 @@ public final class I18n {
         en.put("TRANSFER_TITLE", "--- INTER-ACCOUNT BANK TRANSFER ---");
 
         ro.put("PROMPT_IBAN_SOURCE", "IBAN cont debitor (Sursă): ");
-        en.put("PROMPT_IBAN_SOURCE", "Debtor account IBAN (Source): ");
+        en.put("PROMPT_IBAN_SOURCE", "Debtor account IBAN (source): ");
 
         ro.put("PROMPT_IBAN_DEST", "IBAN cont creditor (Destinație): ");
-        en.put("PROMPT_IBAN_DEST", "Creditor account IBAN (Destination): ");
+        en.put("PROMPT_IBAN_DEST", "Creditor account IBAN (destination): ");
 
         ro.put("ERR_SAME_ACCOUNT", "[EROARE] Contul destinație nu poate fi identic cu contul sursă!\n-> Vă rugăm să introduceți un IBAN de destinație diferit sau tastați 0 pentru a anula operațiunea.\n");
         en.put("ERR_SAME_ACCOUNT", "[ERROR] Destination account cannot be identical to source account!\n-> Please enter a different destination IBAN or type 0 to cancel the operation.\n");
@@ -347,8 +359,8 @@ public final class I18n {
         ro.put("PROMPT_AMOUNT_TRANSFER", "Sumă de transferat (în %s): ");
         en.put("PROMPT_AMOUNT_TRANSFER", "Transfer amount (in %s): ");
 
-        ro.put("PROMPT_DESC_TRANSFER", "Detalii transfer (apăsați ENTER pt 'Transfer bancar interconturi'): ");
-        en.put("PROMPT_DESC_TRANSFER", "Transfer details (press ENTER for 'Inter-account bank transfer'): ");
+        ro.put("PROMPT_DESC_TRANSFER", "Detalii transfer (apăsați ENTER pt 'Transfer bancar interconturi', sau 0 pentru anulare tranzacție): ");
+        en.put("PROMPT_DESC_TRANSFER", "Transfer details (press ENTER for 'Inter-account bank transfer', or 0 to cancel transaction): ");
 
         ro.put("DEFAULT_DESC_TRANSFER", "Transfer bancar interconturi");
         en.put("DEFAULT_DESC_TRANSFER", "Inter-account bank transfer");
@@ -369,7 +381,7 @@ public final class I18n {
         en.put("PROMPT_PROVIDER", "Utility provider name (e.g.: Enel, Digi, Engie, Power Grid): ");
 
         ro.put("PROMPT_BILL_NUM", "Număr factură: ");
-        en.put("PROMPT_BILL_NUM", "Invoice / Bill number: ");
+        en.put("PROMPT_BILL_NUM", "Invoice / bill number: ");
 
         ro.put("PROMPT_BILL_AMOUNT", "Sumă factură: ");
         en.put("PROMPT_BILL_AMOUNT", "Bill amount: ");
@@ -390,7 +402,7 @@ public final class I18n {
         en.put("HISTORY_OPT_FILTER", "  2. Filter transactions by IBAN");
 
         ro.put("HISTORY_OPT_CANCEL", "  0. Anulare / Revenire la meniul principal");
-        en.put("HISTORY_OPT_CANCEL", "  0. Cancel / Return to main menu");
+        en.put("HISTORY_OPT_CANCEL", "  0. Cancel / return to main menu");
 
         ro.put("PROMPT_HISTORY_MODE", "Selectați modul de afișare (0-2): ");
         en.put("PROMPT_HISTORY_MODE", "Select display mode (0-2): ");
@@ -429,7 +441,7 @@ public final class I18n {
         en.put("MATRIX_COL_BILLS", "BILLS");
 
         ro.put("MATRIX_NOTE", "* Notă: Formatul celulei este 'Sumă (Număr operațiuni)'");
-        en.put("MATRIX_NOTE", "* Note: Cell format is 'Amount (Number of operations)'");
+        en.put("MATRIX_NOTE", "* Note: Cell format is 'Amount (number of operations)'");
 
         // =====================================================================
         // OPTIUNEA 9: RAPORT STATISTIC TEXT
@@ -488,7 +500,7 @@ public final class I18n {
         ro.put("ACTION_LOCK", "BLOCAȚI");
         en.put("ACTION_LOCK", "LOCK");
 
-        ro.put("ACTION_UNLOCK", "ACTIVATI");
+        ro.put("ACTION_UNLOCK", "ACTIVAȚI");
         en.put("ACTION_UNLOCK", "UNLOCK");
 
         ro.put("STATE_ACTIVE", "ACTIV");
@@ -566,7 +578,7 @@ public final class I18n {
         ro.put("ERR_IBAN_EXISTS", "[EROARE] Există deja un cont înregistrat cu IBAN-ul '%s' (Titular: %s).\n-> Vă rugăm să introduceți un IBAN unic sau tastați 0 pentru a anula operațiunea.\n");
         en.put("ERR_IBAN_EXISTS", "[ERROR] An account is already registered with IBAN '%s' (Holder: %s).\n-> Please enter a unique IBAN or type 0 to cancel the operation.\n");
 
-        ro.put("ERR_NAME_INVALID", "[EROARE] Numele titularului trebuie să conțină minim 3 caractere și să fie alcătuit din litere.\n-> Vă rugăm să reintroduceți numele sau tastați 0 pentru a anula operațiunea.\n");
+        ro.put("ERR_NAME_INVALID", "[EROARE] Numele titularului trebuie să conțină minimum 3 caractere și să fie alcătuit din litere.\n-> Vă rugăm să reintroduceți numele sau tastați 0 pentru a anula operațiunea.\n");
         en.put("ERR_NAME_INVALID", "[ERROR] Account holder name must contain at least 3 characters and consist of letters.\n-> Please re-enter the name or type 0 to cancel the operation.\n");
 
         ro.put("ERR_CNP_INVALID", "[EROARE] CNP invalid! Trebuie să conțină exact 13 cifre numerice (exemplu: 1950315123456).\n-> Vă rugăm să reintroduceți CNP-ul sau tastați 0 pentru a anula operațiunea.\n");
@@ -575,7 +587,7 @@ public final class I18n {
         ro.put("ERR_EMAIL_INVALID", "[EROARE] Adresa de e-mail este invalidă! Format așteptat: utilizator@domeniu.ext\n-> Vă rugăm să reintroduceți adresa de e-mail sau tastați 0 pentru a anula operațiunea.\n");
         en.put("ERR_EMAIL_INVALID", "[ERROR] Email address is invalid! Expected format: user@domain.ext\n-> Please re-enter the email address or type 0 to cancel the operation.\n");
 
-        ro.put("ERR_PHONE_INVALID", "[EROARE] Numărul de telefon este invalid! Trebuie să conțină minim 10 cifre numerice (exemplu: 0722123456).\n-> Vă rugăm să reintroduceți numărul sau tastați 0 pentru a anula operațiunea.\n");
+        ro.put("ERR_PHONE_INVALID", "[EROARE] Numărul de telefon este invalid! Trebuie să conțină minimum 10 cifre numerice (exemplu: 0722123456).\n-> Vă rugăm să reintroduceți numărul sau tastați 0 pentru a anula operațiunea.\n");
         en.put("ERR_PHONE_INVALID", "[ERROR] Phone number is invalid! Must contain at least 10 digits (example: 0722123456).\n-> Please re-enter the phone number or type 0 to cancel the operation.\n");
 
         ro.put("ERR_AMOUNT_POSITIVE_DEP", "[EROARE] Suma de depus trebuie să fie un număr strict pozitiv (> 0)!\n-> Vă rugăm să reintroduceți suma sau tastați 0 pentru a anula operațiunea.\n");

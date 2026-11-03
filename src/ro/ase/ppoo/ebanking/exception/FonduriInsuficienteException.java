@@ -11,7 +11,7 @@ public class FonduriInsuficienteException extends BancarException {
     private final double soldDisponibil;
 
     public FonduriInsuficienteException(String iban, double sumaCeruta, double soldDisponibil) {
-        super(String.format("Fonduri insuficiente in contul %s: suma ceruta (inclusiv comision) = %.2f, sold disponibil = %.2f",
+        super(String.format("Fonduri insuficiente în contul %s: suma cerută (inclusiv comision) = %.2f, sold disponibil = %.2f",
                 iban, sumaCeruta, soldDisponibil));
         this.sumaCeruta = sumaCeruta;
         this.soldDisponibil = soldDisponibil;

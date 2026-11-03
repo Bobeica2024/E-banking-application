@@ -26,7 +26,7 @@ public class CsvStorage {
     public void incarcaConturi(String caleFisier, BancaService service) throws IOException, FormatDateIncorectException {
         File fisier = new File(caleFisier);
         if (!fisier.exists()) {
-            throw new FileNotFoundException("Fisierul de conturi nu exista: " + caleFisier);
+            throw new FileNotFoundException("Fișierul de conturi nu există: " + caleFisier);
         }
 
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(fisier), StandardCharsets.UTF_8))) {
@@ -40,7 +40,7 @@ public class CsvStorage {
 
                 String[] tokens = linie.split(CSV_DELIMITER, -1);
                 if (tokens.length < 9) {
-                    throw new FormatDateIncorectException("Linia " + indexLinie + " din conturi.csv contine mai putin de 9 coloane.");
+                    throw new FormatDateIncorectException("Linia " + indexLinie + " din conturi.csv conține mai puțin de 9 coloane.");
                 }
 
                 try {
@@ -89,7 +89,7 @@ public class CsvStorage {
 
                 String[] tokens = linie.split(CSV_DELIMITER, -1);
                 if (tokens.length < 10) {
-                    throw new FormatDateIncorectException("Linia " + indexLinie + " din tranzactii.csv contine mai putin de 10 coloane.");
+                    throw new FormatDateIncorectException("Linia " + indexLinie + " din tranzactii.csv conține mai puțin de 10 coloane.");
                 }
 
                 try {
@@ -115,7 +115,7 @@ public class CsvStorage {
                         } catch (NumberFormatException ignored) {}
                     }
                 } catch (Exception ex) {
-                    throw new FormatDateIncorectException("Eroare la parsarea tranzactiei linia " + indexLinie + ": " + ex.getMessage(), ex);
+                    throw new FormatDateIncorectException("Eroare la parsarea tranzacției la linia " + indexLinie + ": " + ex.getMessage(), ex);
                 }
             }
         }

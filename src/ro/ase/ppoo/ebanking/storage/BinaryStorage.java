@@ -50,7 +50,7 @@ public class BinaryStorage {
     public void restaureazaBackupBinar(String caleFisier, BancaService service) throws IOException, ClassNotFoundException {
         File fisier = new File(caleFisier);
         if (!fisier.exists()) {
-            throw new FileNotFoundException("Fisierul de backup binar nu exista: " + caleFisier);
+            throw new FileNotFoundException("Fișierul de backup binar nu există: " + caleFisier);
         }
 
         try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(fisier))) {

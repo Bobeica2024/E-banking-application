@@ -8,6 +8,6 @@ public class TranzactieInvalidaException extends BancarException {
     private static final long serialVersionUID = 1L;
 
     public TranzactieInvalidaException(String motiv) {
-        super("Tranzactie invalida: " + motiv);
+        super("Tranzacție invalidă: " + motiv);
     }
 }

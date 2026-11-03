@@ -55,6 +55,7 @@ public class RaportGenerator {
             writer.write(String.format(" - Total fonduri gestionate (in RON): %,12.2f lei\n", service.calculeazaTotalFonduri(Moneda.RON)));
             writer.write(String.format(" - Total fonduri gestionate (in EUR): %,12.2f €\n", service.calculeazaTotalFonduri(Moneda.EUR)));
             writer.write(String.format(" - Total fonduri gestionate (in USD): %,12.2f $\n", service.calculeazaTotalFonduri(Moneda.USD)));
+            writer.write(String.format(" - Total fonduri gestionate (in GBP): %,12.2f £\n", service.calculeazaTotalFonduri(Moneda.GBP)));
             writer.write("\n");
 
             // 2. Rate de schimb utilizate (Masiv 1D fundamental)

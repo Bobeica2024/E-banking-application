@@ -9,7 +9,7 @@ public class ContInexistentException extends BancarException {
     private final String iban;
 
     public ContInexistentException(String iban) {
-        super("Contul bancar cu IBAN-ul '" + iban + "' nu a fost gasit in evidentele bancii.");
+        super("Contul bancar cu IBAN-ul '" + iban + "' nu a fost găsit în evidențele băncii.");
         this.iban = iban;
     }
 

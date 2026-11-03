@@ -107,13 +107,13 @@ public class MeniuConsola {
                 bancaService.valideazaIban(iban);
                 contExistent = bancaService.gasesteCont(iban);
                 if (!contExistent.isActiv()) {
-                    System.out.println("\n" + I18n.t("ERR_BANKING_HEADER") + "Contul " + iban + " este BLOCAT. Vă rugăm contactați un operator bancar.");
+                    System.out.println("\n" + I18n.t("ERR_BANKING_HEADER") + "Contul " + iban + " este BLOCAT. Vă rugăm să contactați un operator bancar.");
                     return;
                 }
                 break;
             } catch (BancarException ex) {
                 System.out.println("\n" + I18n.t("ERR_BANKING_HEADER") + ex.getMessage());
-                System.out.println("Vă rugăm reintroduceți un IBAN valid (sau tastați '0' pt anulare).\n");
+                System.out.println("Vă rugăm să reintroduceți un IBAN valid (sau tastați '0' pentru anulare).\n");
             }
         }
 
@@ -142,7 +142,7 @@ public class MeniuConsola {
                     return;
                 } catch (BancarException ex) {
                     System.out.println("\n" + I18n.t("ERR_BANKING_HEADER") + ex.getMessage());
-                    System.out.println("Vă rugăm reintroduceți codul PIN corect (sau tastați '0' pt anulare).\n");
+                    System.out.println("Vă rugăm să reintroduceți codul PIN corect (sau tastați '0' pentru anulare).\n");
                 }
             }
         }
@@ -179,7 +179,7 @@ public class MeniuConsola {
             }
 
             if (clientConectat) {
-                System.out.println("\n[ENTER pt a continua în Portalul Client...]");
+                System.out.println(I18n.t("CONTINUE_CLIENT"));
                 scanner.nextLine();
             }
         }
@@ -336,7 +336,7 @@ public class MeniuConsola {
                 break;
             }
             System.out.println("\n" + I18n.t("ERR_OPERATOR_PASS_INCORRECT"));
-            System.out.println("Vă rugăm reîncercați parola (sau tastați '0' pt anulare).\n");
+            System.out.println("Vă rugăm să reîncercați parola (sau tastați '0' pentru anulare).\n");
         }
 
         System.out.println(I18n.t("SUCCESS_LOGIN_OPERATOR"));
@@ -371,7 +371,7 @@ public class MeniuConsola {
             }
 
             if (operatorConectat) {
-                System.out.println("\n[ENTER pt a continua în Consola de Operator...]");
+                System.out.println(I18n.t("CONTINUE_OPERATOR"));
                 scanner.nextLine();
             }
         }
@@ -396,7 +396,7 @@ public class MeniuConsola {
     private void optiuneOperatorSchimbareParola() throws OperatiuneAnulataException, BancarException {
         System.out.println("\n--- SCHIMBARE PAROLĂ OPERATOR BANCAR ---");
         System.out.println("Cerințe de securitate parolă:");
-        System.out.println(" -> Minim 10 caractere");
+        System.out.println(" -> Minimum 10 caractere");
         System.out.println(" -> Cel puțin o literă mare (A-Z) și o literă mică (a-z)");
         System.out.println(" -> Cel puțin o cifră (0-9)");
         System.out.println(" -> Cel puțin un caracter special (!@#$%^&* etc.)");
@@ -489,6 +489,8 @@ public class MeniuConsola {
         System.out.println("--------------------------------------------------------------------------");
         System.out.print(I18n.t("TOTAL_FUNDS_RON", bancaService.calculeazaTotalFonduri(Moneda.RON)));
         System.out.print(I18n.t("TOTAL_FUNDS_EUR", bancaService.calculeazaTotalFonduri(Moneda.EUR)));
+        System.out.print(I18n.t("TOTAL_FUNDS_USD", bancaService.calculeazaTotalFonduri(Moneda.USD)));
+        System.out.print(I18n.t("TOTAL_FUNDS_GBP", bancaService.calculeazaTotalFonduri(Moneda.GBP)));
     }
 
     private void optiuneVizualizareMatriceStatistica() {
@@ -571,7 +573,7 @@ public class MeniuConsola {
         System.out.println("--------------------------------------------------------------------------");
         System.out.println("Acțiuni administrative disponibile:");
         System.out.println("  1. " + (cont.isActiv() ? "Blocare cont (dezactivare)" : "Deblocare cont (activare)"));
-        System.out.println("  2. Inițiere procedură RESETARE PIN (clientul va introduce noul PIN de 2 ori la logare)");
+        System.out.println("  2. Inițiere procedură de resetare PIN (clientul va introduce noul PIN de două ori la logare)");
         System.out.println("  0. Anulare / Înapoi");
 
         int opt = citesteInt("Selectați acțiunea dorită (0-2): ", 0, 2);
@@ -583,7 +585,7 @@ public class MeniuConsola {
             }
             case 2 -> {
                 bancaService.solicitaResetarePin(cont.getIban());
-                System.out.println("\n[SUCCES] Procedura de Resetare PIN a fost activată pentru contul " + cont.getIban() + ".");
+                System.out.println("\n[SUCCES] Procedura de resetare PIN a fost activată pentru contul " + cont.getIban() + ".");
             }
             case 0 -> throw new OperatiuneAnulataException();
         }

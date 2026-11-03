@@ -8,7 +8,7 @@ public class OperatiuneAnulataException extends BancarException {
     private static final long serialVersionUID = 1L;
 
     public OperatiuneAnulataException() {
-        super("Operatiunea a fost anulata de utilizator.");
+        super("Operațiunea a fost anulată de utilizator.");
     }
 
     public OperatiuneAnulataException(String mesaj) {
