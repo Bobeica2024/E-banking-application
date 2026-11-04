@@ -39,6 +39,7 @@ public class BancaTest {
         ruleazaTest("Test securitate si validare parola operator", BancaTest::testSecuritateParolaOperator);
         ruleazaTest("Test generare IBAN RO si restrictie deschidere", BancaTest::testGenerareIbanSiRestrictieDeschidere);
         ruleazaTest("Test transfer international catre IBAN extern", BancaTest::testTransferInternationalContExtern);
+        ruleazaTest("Test transfer international non-IBAN", BancaTest::testTransferInternationalNonIban);
         ruleazaTest("Test resetare PIN de operator si redefinire client", BancaTest::testResetarePinDeCatreOperatorSiReintroducereClient);
 
         System.out.println("==========================================================");
@@ -263,6 +264,15 @@ public class BancaTest {
             aPicatId = true;
         }
         afirma(aPicatId, "Trebuia sa arunce exceptie pentru IBAN Indonezia cu lungime sub limita minima");
+
+        // 24. Validare cod de tara inexistent in sistem (ex: XX)
+        boolean aPicatTaraInexistenta = false;
+        try {
+            service.valideazaIban("XX120001001012345678");
+        } catch (FormatDateIncorectException ex) {
+            aPicatTaraInexistenta = ex.getMessage() != null && ex.getMessage().contains("Cod de țară invalid");
+        }
+        afirma(aPicatTaraInexistenta, "Trebuia sa arunce exceptie 'Cod de tara invalid' pentru codul XX");
     }
 
     private static void testDepunereRetragere() throws Exception {
@@ -579,6 +589,53 @@ public class BancaTest {
         double[][] matrice = service.getMatriceStatisticaLunara();
         int lunaCurenta = java.time.LocalDate.now().getMonthValue() - 1;
         afirma(matrice[lunaCurenta][TipTranzactie.TRANSFER.getIndexMatrice()] >= 200.0, "Matricea statistica nu a inregistrat transferul extern");
+    }
+
+    private static void testTransferInternationalNonIban() throws Exception {
+        BancaService service = new BancaService();
+        Client c = new Client("CLI-15", "Client Non-IBAN", "1951515123456", "noniban@test.ro", "0720555666");
+        service.deschideCont("RO15BTRLRONCRT0000000015", c, TipCont.CURENT, Moneda.RON, 2000.0);
+
+        // 1. Transfer catre India (cu cod IFSC si cont 14 cifre)
+        Tranzactie trxIndia = service.efectueazaTransferInternationalNonIban(
+                "RO15BTRLRONCRT0000000015", "IN", "SBININBB", "SBIN0001234",
+                "12345678901234", "Rajesh Sharma", 500.0, "Plata colaborare IT India");
+        afirma(trxIndia != null, "Tranzactia catre India trebuia sa fie generata");
+        afirma(trxIndia.getIbanDestinatie().contains("IN") && trxIndia.getIbanDestinatie().contains("12345678901234"),
+                "Identificatorul non-IBAN India este invalid");
+
+        // 2. Transfer catre China (fara cod SWIFT obligatoriu, doar cod bancar CNAPS si cont 18 cifre)
+        Tranzactie trxChina = service.efectueazaTransferInternationalNonIban(
+                "RO15BTRLRONCRT0000000015", "CN", null, "102100000010",
+                "622202123456789012", "Li Wei", 300.0, "Plata furnizor China");
+        afirma(trxChina != null, "Tranzactia catre China trebuia sa fie generata");
+
+        // 3. Verificare comision extern (0.4%): 500*0.004 = 2.0 RON; 300*0.004 = 1.2 RON
+        // Total debitat: 502 + 301.2 = 803.2 RON. Sold ramas: 2000 - 803.2 = 1196.8 RON.
+        ContBancar cont = service.gasesteCont("RO15BTRLRONCRT0000000015");
+        afirma(Math.abs(cont.getSold() - 1196.8) < 0.001, "Soldul ramas dupa transferuri non-IBAN este incorect: " + cont.getSold());
+
+        // 4. Test respingere SWIFT daca este specificat dar nu corespunde tarii (ex: SWIFT US folosit pentru India)
+        boolean aPicatSwiftGresit = false;
+        try {
+            service.efectueazaTransferInternationalNonIban(
+                    "RO15BTRLRONCRT0000000015", "IN", "CHASUS33", null,
+                    "12345678901234", "Rajesh Sharma", 100.0, "Test invalid");
+        } catch (FormatDateIncorectException ex) {
+            aPicatSwiftGresit = true;
+        }
+        afirma(aPicatSwiftGresit, "Trebuia sa respinga codul SWIFT cu tara US pentru transfer catre India");
+
+        // 5. Test respingere cod de tara inexistent in sistem (ex: ZZ)
+        boolean aPicatTaraInexistenta = false;
+        try {
+            service.efectueazaTransferInternationalNonIban(
+                    "RO15BTRLRONCRT0000000015", "ZZ", "ZZZZZZZZ", null,
+                    "12345678901234", "Destinatar ZZ", 100.0, "Test tara inexistenta");
+        } catch (FormatDateIncorectException ex) {
+            aPicatTaraInexistenta = ex.getMessage() != null && ex.getMessage().contains("Cod de țară invalid");
+        }
+        afirma(aPicatTaraInexistenta, "Trebuia sa respinga transferul pentru codul de tara inexistent ZZ");
     }
 
     private static void testResetarePinDeCatreOperatorSiReintroducereClient() throws Exception {

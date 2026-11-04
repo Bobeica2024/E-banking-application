@@ -233,7 +233,25 @@ public class MeniuConsola {
     }
 
     private void optiuneClientTransfer(ContBancar contSursa) throws BancarException {
-        System.out.println(I18n.t("TRANSFER_TITLE"));
+        System.out.println("--- TRANSFER BANCAR (INTERN & INTERNAȚIONAL) ---");
+        System.out.println(I18n.t("CANCEL_NOTE"));
+        System.out.println("Selectați modalitatea de transfer:");
+        System.out.println("  1. Transfer în spațiul IBAN (România, Europa / SEPA, Marea Britanie, Elveția, Moldova etc.)");
+        System.out.println("  2. Transfer internațional non-IBAN (țări fără IBAN: India, China, Japonia, SUA, Australia etc.)");
+        System.out.println("  0. Anulare (revenire la meniul principal)");
+
+        int tipTransfer = citesteInt("Selectați opțiunea dorită (0-2): ", 0, 2);
+        if (tipTransfer == 0) {
+            throw new OperatiuneAnulataException();
+        } else if (tipTransfer == 1) {
+            executaTransferIban(contSursa);
+        } else {
+            executaTransferInternationalNonIban(contSursa);
+        }
+    }
+
+    private void executaTransferIban(ContBancar contSursa) throws BancarException {
+        System.out.println("\n--- TRANSFER ÎN SPAȚIUL IBAN ---");
         System.out.println(I18n.t("CANCEL_NOTE"));
 
         String ibanDest = citesteIbanDestinatie(contSursa.getIban());
@@ -258,6 +276,165 @@ public class MeniuConsola {
                     ibanDest, trx.getIdTranzactie(), suma, contSursa.getMoneda().name(),
                     trx.getComision(), contSursa.getMoneda().name(), contSursa.getSold(), contSursa.getMoneda().name());
         }
+    }
+
+    private void executaTransferInternationalNonIban(ContBancar contSursa) throws BancarException {
+        System.out.println("\n--- TRANSFER INTERNAȚIONAL NON-IBAN ---");
+        System.out.println(I18n.t("CANCEL_NOTE"));
+        System.out.println("Selectați țara destinație:");
+        System.out.println("  1. India (cod filiala IFSC + număr cont bancar)");
+        System.out.println("  2. China (cod compensare CNAPS + număr cont bancar)");
+        System.out.println("  3. Japonia (cod Zengin + număr cont bancar)");
+        System.out.println("  4. Statele Unite ale Americii (routing ABA + număr cont)");
+        System.out.println("  5. Canada (număr tranzit bancar + număr cont)");
+        System.out.println("  6. Australia (cod BSB + număr cont bancar)");
+        System.out.println("  7. Altă destinație internațională (Coreea de Sud, Singapore, Vietnam etc.)");
+        System.out.println("  0. Anulare / Înapoi");
+
+        int optTara = citesteInt("Selectați opțiunea dorită (0-7): ", 0, 7);
+        if (optTara == 0) {
+            throw new OperatiuneAnulataException();
+        }
+
+        String codTara;
+        switch (optTara) {
+            case 1 -> codTara = "IN";
+            case 2 -> codTara = "CN";
+            case 3 -> codTara = "JP";
+            case 4 -> codTara = "US";
+            case 5 -> codTara = "CA";
+            case 6 -> codTara = "AU";
+            default -> {
+                while (true) {
+                    String input = citesteLinieSauAnulare("Introduceți codul de țară ISO (2 litere, ex: KR, SG, VN, PH, MX, AR): ");
+                    input = input.trim().toUpperCase();
+                    if (!input.matches("^[A-Z]{2}$")) {
+                        System.out.println("[EROARE] Cod de țară invalid: codul trebuie să conțină exact 2 litere (format ISO 3166-1).");
+                        continue;
+                    }
+                    if (BancaService.getSpecificatieNonIban(input) == null) {
+                        System.out.printf("[EROARE] Cod de țară invalid: codul '%s' nu există în evidențele băncii.\n", input);
+                        continue;
+                    }
+                    codTara = input;
+                    break;
+                }
+            }
+        }
+
+        BancaService.SpecificatieTaraNonIban spec = BancaService.getSpecificatieNonIban(codTara);
+        String numeTara = spec != null ? spec.denumireTara() : ("Țara (" + codTara + ")");
+        System.out.println("\n--- DETALII TRANSFER BANCAR INTERNAȚIONAL (" + numeTara.toUpperCase() + ") ---");
+
+        // 1. Cod SWIFT / BIC bancă beneficiară (obligatoriu conform ISO 9362 pentru țările membre SWIFT)
+        String promptSwift = (spec != null && spec.swiftExemplu() != null)
+                ? String.format("Cod SWIFT / BIC bancă (apăsați ENTER pt '%s' - %s): ", spec.swiftExemplu(), spec.bancaExemplu())
+                : ("Cod SWIFT / BIC bancă (8 sau 11 caractere cu indicativul de țară " + codTara + "): ");
+        String codSwift;
+        while (true) {
+            System.out.print(promptSwift);
+            String input = scanner.nextLine().trim();
+            if (esteComandaAnulare(input)) {
+                throw new OperatiuneAnulataException();
+            }
+            if (input.isEmpty() && spec != null && spec.swiftExemplu() != null) {
+                codSwift = spec.swiftExemplu();
+                break;
+            }
+            String clean = input.toUpperCase().replaceAll("\\s+", "");
+            try {
+                bancaService.valideazaCodSwift(clean, codTara);
+                codSwift = clean;
+                break;
+            } catch (FormatDateIncorectException ex) {
+                System.out.println("[EROARE] " + ex.getMessage());
+            }
+        }
+
+        // 2. Cod rutare local (IFSC, Routing ABA, BSB, Zengin etc.) dacă este specific țării
+        String codRutare = null;
+        if (spec != null && spec.denumireCodRutare() != null) {
+            String valoareImplicita = spec.exempluRutare() != null ? spec.exempluRutare().split(" ")[0] : null;
+            String promptRutare = (valoareImplicita != null)
+                    ? String.format("%s (apăsați ENTER pt '%s'): ", spec.denumireCodRutare(), valoareImplicita)
+                    : String.format("%s: ", spec.denumireCodRutare());
+            while (true) {
+                System.out.print(promptRutare);
+                String input = scanner.nextLine().trim();
+                if (esteComandaAnulare(input)) {
+                    throw new OperatiuneAnulataException();
+                }
+                if (input.isEmpty() && valoareImplicita != null) {
+                    codRutare = valoareImplicita;
+                    break;
+                }
+                String clean = input.toUpperCase().replaceAll("\\s+", "");
+                if (spec.regexRutare() != null && !clean.matches(spec.regexRutare())) {
+                    System.out.printf("[EROARE] Format invalid pentru %s (%s). Reîncercați.\n",
+                            spec.denumireCodRutare(), spec.exempluRutare());
+                    continue;
+                }
+                codRutare = clean;
+                break;
+            }
+        }
+
+        // 3. Număr cont beneficiar
+        String promptCont = (spec != null)
+                ? String.format("Număr cont bancar beneficiar (%s): ", spec.formatContDescriere())
+                : "Număr cont bancar beneficiar: ";
+        String numarCont;
+        while (true) {
+            String input = citesteLinieSauAnulare(promptCont).replaceAll("\\s+", "");
+            if (spec != null && spec.regexCont() != null) {
+                if (!input.matches(spec.regexCont())) {
+                    System.out.printf("[EROARE] Numărul de cont pentru %s trebuie să aibă formatul: %s.\n",
+                            numeTara, spec.formatContDescriere());
+                    continue;
+                }
+            } else {
+                if (!input.matches("^[A-Z0-9]{4,34}$")) {
+                    System.out.println("[EROARE] Numărul de cont internațional trebuie să conțină între 4 și 34 caractere alfanumerice.");
+                    continue;
+                }
+            }
+            numarCont = input;
+            break;
+        }
+
+        // 4. Nume beneficiar
+        String numeBeneficiar;
+        while (true) {
+            String input = citesteLinieSauAnulare("Nume și prenume beneficiar (titular cont): ").trim();
+            if (input.length() >= 2) {
+                numeBeneficiar = input;
+                break;
+            }
+            System.out.println("[EROARE] Numele beneficiarului trebuie să aibă minimum 2 caractere.");
+        }
+
+        // 5. Suma de transferat
+        double suma = citesteSumaTransfer(contSursa, String.format(I18n.t("PROMPT_AMOUNT_TRANSFER"), contSursa.getMoneda().name()));
+
+        // 6. Detalii transfer / scop plată
+        String descriere = citesteDescriereOptionala(I18n.t("PROMPT_DESC_TRANSFER"), "Transfer transfrontalier non-IBAN " + numeTara);
+
+        // 7. Execuție transfer în service
+        Tranzactie trx = bancaService.efectueazaTransferInternationalNonIban(
+                contSursa.getIban(), codTara, codSwift, codRutare, numarCont, numeBeneficiar, suma, descriere);
+
+        System.out.println("\n==========================================================================");
+        System.out.println("[SUCCES] Transfer internațional non-IBAN procesat cu succes!");
+        System.out.printf("Destinație: %s | Beneficiar: %s\n", numeTara, numeBeneficiar);
+        System.out.printf("Cod SWIFT: %s%s | Cont: %s\n",
+                codSwift,
+                (codRutare != null ? (" | " + spec.denumireCodRutare() + ": " + codRutare) : ""),
+                numarCont);
+        System.out.printf("Tranzacție ID: %s | Sumă debitată: %,.2f %s | Comision extern: %,.2f %s | Sold rămas: %,.2f %s\n",
+                trx.getIdTranzactie(), suma, contSursa.getMoneda().name(),
+                trx.getComision(), contSursa.getMoneda().name(),
+                contSursa.getSold(), contSursa.getMoneda().name());
+        System.out.println("==========================================================================");
     }
 
     private void optiuneClientPlataFactura(ContBancar cont) throws BancarException {
@@ -768,7 +945,9 @@ public class MeniuConsola {
                         I18n.t("STATE_ACTIVE")));
             } catch (ContInexistentException e) {
                 String codTara = cleanIban.substring(0, 2);
-                System.out.printf("[INFO] Cont extern internațional recunoscut (%s) conform ISO 13616. Se va procesa ca transfer transfrontalier.\n", codTara);
+                BancaService.RegulaIban regula = BancaService.getRegulaIban(codTara);
+                String infoTara = (regula != null) ? (codTara + " - " + regula.denumireTara()) : codTara;
+                System.out.printf("[INFO] Cont extern internațional recunoscut (%s) conform ISO 13616. Se va procesa ca transfer transfrontalier.\n", infoTara);
             }
 
             return cleanIban;

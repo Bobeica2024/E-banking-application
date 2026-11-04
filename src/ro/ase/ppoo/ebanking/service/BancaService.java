@@ -519,8 +519,10 @@ public class BancaService {
         // Cautam daca contul destinatie este intern (in banca noastra) sau extern (international)
         ContBancar contDestinatie = conturiMap.get(ibanDestinatie);
         if (contDestinatie == null) {
-            // Transfer extern international - validam IBAN-ul conform ISO 13616
-            valideazaIban(ibanDestinatie);
+            // Transfer extern international - validam IBAN-ul conform ISO 13616 daca nu este un identificator extern non-IBAN
+            if (!ibanDestinatie.startsWith("NON-IBAN-") && !ibanDestinatie.startsWith("WIRE-") && !ibanDestinatie.startsWith("SWIFT:")) {
+                valideazaIban(ibanDestinatie);
+            }
         } else if (!contDestinatie.isActiv()) {
             throw new ContBlocatException(ibanDestinatie);
         }
@@ -542,7 +544,14 @@ public class BancaService {
 
         String descriereFinala;
         if (esteTransferExtern) {
-            String codTara = ibanDestinatie.length() >= 2 ? ibanDestinatie.substring(0, 2).toUpperCase() : "";
+            String codTara = "";
+            if (ibanDestinatie.startsWith("NON-IBAN-") && ibanDestinatie.length() >= 11) {
+                codTara = ibanDestinatie.substring(9, 11);
+            } else if (ibanDestinatie.startsWith("WIRE-") && ibanDestinatie.length() >= 7) {
+                codTara = ibanDestinatie.substring(5, 7);
+            } else if (ibanDestinatie.length() >= 2) {
+                codTara = ibanDestinatie.substring(0, 2).toUpperCase();
+            }
             descriereFinala = (descriere != null && !descriere.isBlank()) ? descriere : ("Transfer bancar extern transfrontalier (" + codTara + ")");
         } else {
             // Calcul suma creditata in contul destinatie intern
@@ -638,7 +647,7 @@ public class BancaService {
         REGULI_IBAN_TARI.put("BG", new RegulaIban("Bulgaria", 22, "^BG[0-9]{2}[A-Z]{4}[0-9]{4}[A-Z0-9]{10}$", "BG + 2 cifre + 4 litere banca + 4 cifre + 10 alfanumerice"));
         REGULI_IBAN_TARI.put("CY", new RegulaIban("Cipru", 28, "^CY[0-9]{10}[A-Z0-9]{16}$", "CY + 2 cifre + 8 cifre banca/sucursala + 16 alfanumerice"));
         REGULI_IBAN_TARI.put("CZ", new RegulaIban("Cehia", 24, "^CZ[0-9]{22}$", "CZ + 2 cifre + 20 cifre cont"));
-        REGULI_IBAN_TARI.put("DE", new RegulaIban("Germania", 22, "^DE[0-9]{20}$", "DE + 2 cifre control + 8 cifre BLZ + 10 cifre cont (exclusiv cifre)"));
+        REGULI_IBAN_TARI.put("DE", new RegulaIban("Germania", 22, "^DE[0-9]{20}$", "DE + 2 cifre control + 8 cifre cod bancă + 10 cifre cont (exclusiv cifre)"));
         REGULI_IBAN_TARI.put("DK", new RegulaIban("Danemarca", 18, "^DK[0-9]{16}$", "DK + 2 cifre control + 14 cifre cont"));
         REGULI_IBAN_TARI.put("EE", new RegulaIban("Estonia", 20, "^EE[0-9]{18}$", "EE + 2 cifre + 16 cifre bancare"));
         REGULI_IBAN_TARI.put("ES", new RegulaIban("Spania", 24, "^ES[0-9]{22}$", "ES + 2 cifre + 20 cifre bancare"));
@@ -696,24 +705,55 @@ public class BancaService {
         // =====================================================================
         // AMERICA LATINA (State cu standard oficial IBAN sau structura nationala)
         // =====================================================================
-        REGULI_IBAN_TARI.put("BR", new RegulaIban("Brazilia", 29, "^BR[0-9]{25}[A-Z0-9]{2}$", "BR + 2 cifre control + 8 cifre ISPB + 5 cifre filiala + 10 cifre cont + 1 litera + 1 alfanumeric"));
-        REGULI_IBAN_TARI.put("MX", new RegulaIban("Mexic", 22, "^MX[0-9]{20}$", "MX + 2 cifre control + 18 cifre CLABE"));
-        REGULI_IBAN_TARI.put("AR", new RegulaIban("Argentina", 26, "^AR[0-9]{24}$", "AR + 2 cifre control + 22 cifre CBU"));
-        REGULI_IBAN_TARI.put("CL", new RegulaIban("Chile", 24, "^CL[0-9]{2}[A-Z0-9]{4}[0-9]{16}$", "CL + 2 cifre control + 4 caractere banca + 16 cifre cont"));
+        REGULI_IBAN_TARI.put("BR", new RegulaIban("Brazilia", 29, "^BR[0-9]{2}[A-Z0-9]{25}$", "BR + 2 cifre control + 25 caractere cont bancar"));
+        REGULI_IBAN_TARI.put("MX", new RegulaIban("Mexic", 22, "^MX[0-9]{20}$", "MX + 2 cifre control + 18 cifre cont bancar"));
+        REGULI_IBAN_TARI.put("AR", new RegulaIban("Argentina", 26, "^AR[0-9]{24}$", "AR + 2 cifre control + 22 cifre cont bancar"));
+        REGULI_IBAN_TARI.put("CL", new RegulaIban("Chile", 24, "^CL[0-9]{2}[A-Z0-9]{20}$", "CL + 2 cifre control + 20 caractere cont bancar"));
         REGULI_IBAN_TARI.put("CO", new RegulaIban("Columbia", 24, "^CO[0-9]{22}$", "CO + 2 cifre control + 20 cifre cont bancar"));
-        REGULI_IBAN_TARI.put("UY", new RegulaIban("Uruguay", 28, "^UY[0-9]{26}$", "UY + 2 cifre control + 4 cifre banca + 22 cifre cont"));
-        REGULI_IBAN_TARI.put("PE", new RegulaIban("Peru", 24, "^PE[0-9]{22}$", "PE + 2 cifre control + 20 cifre CCI"));
-        REGULI_IBAN_TARI.put("CR", new RegulaIban("Costa Rica", 22, "^CR[0-9]{20}$", "CR + 2 cifre control + 4 cifre banca + 14 cifre cont"));
-        REGULI_IBAN_TARI.put("DO", new RegulaIban("Republica Dominicana", 28, "^DO[0-9]{2}[A-Z0-9]{4}[0-9]{20}$", "DO + 2 cifre control + 4 caractere banca + 20 cifre cont"));
-        REGULI_IBAN_TARI.put("GT", new RegulaIban("Guatemala", 28, "^GT[0-9]{2}[A-Z0-9]{4}[A-Z0-9]{20}$", "GT + 2 cifre control + 4 caractere banca + 20 caractere cont"));
-        REGULI_IBAN_TARI.put("PA", new RegulaIban("Panama", 24, "^PA[0-9]{2}[A-Z0-9]{4}[0-9]{16}$", "PA + 2 cifre control + 4 caractere banca + 16 cifre cont"));
-        REGULI_IBAN_TARI.put("SV", new RegulaIban("El Salvador", 28, "^SV[0-9]{2}[A-Z]{4}[0-9]{20}$", "SV + 2 cifre control + 4 litere banca + 20 cifre cont"));
-        REGULI_IBAN_TARI.put("NI", new RegulaIban("Nicaragua", 28, "^NI[0-9]{2}[A-Z]{4}[0-9]{20}$", "NI + 2 cifre control + 4 litere banca + 20 cifre cont"));
+        REGULI_IBAN_TARI.put("UY", new RegulaIban("Uruguay", 28, "^UY[0-9]{26}$", "UY + 2 cifre control + 24 cifre cont bancar"));
+        REGULI_IBAN_TARI.put("PE", new RegulaIban("Peru", 24, "^PE[0-9]{22}$", "PE + 2 cifre control + 20 cifre cont bancar"));
+        REGULI_IBAN_TARI.put("CR", new RegulaIban("Costa Rica", 22, "^CR[0-9]{20}$", "CR + 2 cifre control + 18 cifre cont bancar"));
+        REGULI_IBAN_TARI.put("DO", new RegulaIban("Republica Dominicana", 28, "^DO[0-9]{2}[A-Z0-9]{24}$", "DO + 2 cifre control + 24 caractere cont bancar"));
+        REGULI_IBAN_TARI.put("GT", new RegulaIban("Guatemala", 28, "^GT[0-9]{2}[A-Z0-9]{24}$", "GT + 2 cifre control + 24 caractere cont bancar"));
+        REGULI_IBAN_TARI.put("PA", new RegulaIban("Panama", 24, "^PA[0-9]{2}[A-Z0-9]{20}$", "PA + 2 cifre control + 20 caractere cont bancar"));
+        REGULI_IBAN_TARI.put("SV", new RegulaIban("El Salvador", 28, "^SV[0-9]{2}[A-Z0-9]{24}$", "SV + 2 cifre control + 24 caractere cont bancar"));
+        REGULI_IBAN_TARI.put("NI", new RegulaIban("Nicaragua", 28, "^NI[0-9]{2}[A-Z0-9]{24}$", "NI + 2 cifre control + 24 caractere cont bancar"));
 
         // =====================================================================
         // ASIA DE SUD (Pakistan - oficial IBAN)
         // =====================================================================
-        REGULI_IBAN_TARI.put("PK", new RegulaIban("Pakistan", 24, "^PK[0-9]{2}[A-Z]{4}[A-Z0-9]{16}$", "PK + 2 cifre control + 4 litere banca + 16 alfanumerice cont"));
+        REGULI_IBAN_TARI.put("PK", new RegulaIban("Pakistan", 24, "^PK[0-9]{2}[A-Z]{4}[A-Z0-9]{16}$", "PK + 2 cifre control + 4 litere bancă + 16 caractere cont"));
+
+        // =====================================================================
+        // AMERICA DE NORD & OCEANIA (Standard extins ISO 13616)
+        // =====================================================================
+        REGULI_IBAN_TARI.put("US", new RegulaIban("Statele Unite ale Americii", 22, "^US[0-9]{2}[A-Z0-9]{18}$", "US + 2 cifre control + 18 caractere identificator bancă și cont"));
+        REGULI_IBAN_TARI.put("CA", new RegulaIban("Canada", 22, "^CA[0-9]{2}[A-Z0-9]{18}$", "CA + 2 cifre control + 18 caractere identificator bancă și cont"));
+        REGULI_IBAN_TARI.put("AU", new RegulaIban("Australia", 18, "^AU[0-9]{2}[A-Z0-9]{14}$", "AU + 2 cifre control + 14 caractere identificator bancă și cont"));
+        REGULI_IBAN_TARI.put("NZ", new RegulaIban("Noua Zeelandă", 18, "^NZ[0-9]{2}[A-Z0-9]{14}$", "NZ + 2 cifre control + 14 caractere identificator bancă și cont"));
+
+        // =====================================================================
+        // ASIA & EXTREMUL ORIENT (Parteneri comerciali & forță de muncă)
+        // =====================================================================
+        REGULI_IBAN_TARI.put("IN", new RegulaIban("India", 22, "^IN[0-9]{2}[A-Z0-9]{18}$", "IN + 2 cifre control + 18 caractere identificator bancă și cont"));
+        REGULI_IBAN_TARI.put("CN", new RegulaIban("China", 22, "^CN[0-9]{2}[A-Z0-9]{18}$", "CN + 2 cifre control + 18 caractere alfanumerice cont"));
+        REGULI_IBAN_TARI.put("JP", new RegulaIban("Japonia", 20, "^JP[0-9]{2}[A-Z0-9]{16}$", "JP + 2 cifre control + 16 caractere identificator bancă și cont"));
+        REGULI_IBAN_TARI.put("KR", new RegulaIban("Coreea de Sud", 20, "^KR[0-9]{2}[A-Z0-9]{16}$", "KR + 2 cifre control + 16 caractere cont"));
+        REGULI_IBAN_TARI.put("SG", new RegulaIban("Singapore", 20, "^SG[0-9]{2}[A-Z0-9]{16}$", "SG + 2 cifre control + 16 caractere cont"));
+        REGULI_IBAN_TARI.put("HK", new RegulaIban("Hong Kong", 20, "^HK[0-9]{2}[A-Z0-9]{16}$", "HK + 2 cifre control + 16 caractere cont"));
+        REGULI_IBAN_TARI.put("NP", new RegulaIban("Nepal", 20, "^NP[0-9]{2}[A-Z0-9]{16}$", "NP + 2 cifre control + 16 caractere cont"));
+        REGULI_IBAN_TARI.put("BD", new RegulaIban("Bangladesh", 20, "^BD[0-9]{2}[A-Z0-9]{16}$", "BD + 2 cifre control + 16 caractere cont"));
+        REGULI_IBAN_TARI.put("VN", new RegulaIban("Vietnam", 20, "^VN[0-9]{2}[A-Z0-9]{16}$", "VN + 2 cifre control + 16 caractere cont"));
+        REGULI_IBAN_TARI.put("PH", new RegulaIban("Filipine", 20, "^PH[0-9]{2}[A-Z0-9]{16}$", "PH + 2 cifre control + 16 caractere cont"));
+        REGULI_IBAN_TARI.put("ID", new RegulaIban("Indonezia", 20, "^ID[0-9]{2}[A-Z0-9]{16}$", "ID + 2 cifre control + 16 caractere cont"));
+        REGULI_IBAN_TARI.put("LK", new RegulaIban("Sri Lanka", 20, "^LK[0-9]{2}[A-Z0-9]{16}$", "LK + 2 cifre control + 16 caractere cont"));
+        REGULI_IBAN_TARI.put("MY", new RegulaIban("Malaezia", 20, "^MY[0-9]{2}[A-Z0-9]{16}$", "MY + 2 cifre control + 16 caractere cont"));
+        REGULI_IBAN_TARI.put("TH", new RegulaIban("Thailanda", 20, "^TH[0-9]{2}[A-Z0-9]{16}$", "TH + 2 cifre control + 16 caractere cont"));
+        REGULI_IBAN_TARI.put("TW", new RegulaIban("Taiwan", 20, "^TW[0-9]{2}[A-Z0-9]{16}$", "TW + 2 cifre control + 16 caractere cont"));
+    }
+
+    public static RegulaIban getRegulaIban(String codTara) {
+        return (codTara != null) ? REGULI_IBAN_TARI.get(codTara.toUpperCase()) : null;
     }
 
     /**
@@ -744,140 +784,290 @@ public class BancaService {
 
         String codTara = cleanIban.substring(0, 2);
 
-        // 1. Verificare pentru tarile din registrul SEPA / European
+        // 1. Verificare existenta cod tara in registrul oficial al bancii
         RegulaIban regula = REGULI_IBAN_TARI.get(codTara);
-        if (regula != null) {
-            if (cleanIban.length() != regula.lungimeFixa()) {
-                throw new FormatDateIncorectException(String.format(
-                        "IBAN-ul pentru %s (%s) trebuie să aibă exact %d caractere. Cel introdus are %d caractere.",
-                        regula.denumireTara(), codTara, regula.lungimeFixa(), cleanIban.length()));
-            }
-            if (regula.regex() != null && !cleanIban.matches(regula.regex())) {
-                throw new FormatDateIncorectException(String.format(
-                        "Format IBAN invalid pentru %s (%s): structura cerută este %s.",
-                        regula.denumireTara(), codTara, regula.formatAsteptat()));
-            }
-            return;
+        if (regula == null) {
+            throw new FormatDateIncorectException(String.format(
+                    "Cod de țară invalid: codul '%s' nu există în evidențele băncii.", codTara));
         }
 
-        // 2. State non-SEPA ce utilizeaza format extins ISO 13616 pentru transferuri transfrontaliere:
-        // SUA (US), Canada (CA), Australia (AU), Noua Zeelanda (NZ)
-        switch (codTara) {
-            case "US" -> { // Statele Unite ale Americii (ABA Routing + Numar Cont)
-                if (cleanIban.length() < 16 || cleanIban.length() > 34) {
-                    throw new FormatDateIncorectException(
-                            "IBAN-ul pentru SUA (US) în format internațional cross-border ISO 13616 trebuie să aibă între 16 și 34 de caractere (US + 2 cifre de control + 9 cifre routing ABA + cont).");
-                }
-            }
-            case "CA" -> { // Canada (Transit + Numar Cont)
-                if (cleanIban.length() < 15 || cleanIban.length() > 30) {
-                    throw new FormatDateIncorectException(
-                            "IBAN-ul pentru Canada (CA) în format internațional ISO 13616 trebuie să aibă între 15 și 30 de caractere (CA + 2 cifre de control + tranzit + cont).");
-                }
-            }
-            case "AU" -> { // Australia (BSB Code + Numar Cont)
-                if (cleanIban.length() < 15 || cleanIban.length() > 30) {
-                    throw new FormatDateIncorectException(
-                            "IBAN-ul pentru Australia (AU) în format internațional ISO 13616 trebuie să aibă între 15 și 30 de caractere (AU + 2 cifre de control + 6 cifre BSB + cont).");
-                }
-            }
-            case "NZ" -> { // Noua Zeelanda (Cod Banca/Sucursala + Numar Cont)
-                if (cleanIban.length() < 15 || cleanIban.length() > 30) {
-                    throw new FormatDateIncorectException(
-                            "IBAN-ul pentru Noua Zeelandă (NZ) în format internațional ISO 13616 trebuie să aibă între 15 și 30 de caractere (NZ + 2 cifre de control + cod bancă/sucursală + cont).");
-                }
-            }
-            case "NP" -> { // Nepal (Muncitori / remiteri de fonduri)
-                if (cleanIban.length() < 15 || cleanIban.length() > 34) {
-                    throw new FormatDateIncorectException(
-                            "IBAN-ul pentru Nepal (NP) în format internațional cross-border ISO 13616 trebuie să aibă între 15 și 34 de caractere.");
-                }
-            }
-            case "IN" -> { // India (Transferuri / afaceri IT & forta de munca)
-                if (cleanIban.length() < 15 || cleanIban.length() > 34) {
-                    throw new FormatDateIncorectException(
-                            "IBAN-ul pentru India (IN) în format internațional cross-border ISO 13616 trebuie să aibă între 15 și 34 de caractere (IN + 2 cifre de control + cod IFSC + cont).");
-                }
-            }
-            case "LK" -> { // Sri Lanka
-                if (cleanIban.length() < 15 || cleanIban.length() > 34) {
-                    throw new FormatDateIncorectException(
-                            "IBAN-ul pentru Sri Lanka (LK) în format internațional cross-border ISO 13616 trebuie să aibă între 15 și 34 de caractere.");
-                }
-            }
-            case "VN" -> { // Vietnam
-                if (cleanIban.length() < 15 || cleanIban.length() > 34) {
-                    throw new FormatDateIncorectException(
-                            "IBAN-ul pentru Vietnam (VN) în format internațional cross-border ISO 13616 trebuie să aibă între 15 și 34 de caractere.");
-                }
-            }
-            case "PH" -> { // Filipine
-                if (cleanIban.length() < 15 || cleanIban.length() > 34) {
-                    throw new FormatDateIncorectException(
-                            "IBAN-ul pentru Filipine (PH) în format internațional cross-border ISO 13616 trebuie să aibă între 15 și 34 de caractere.");
-                }
-            }
-            case "BD" -> { // Bangladesh (Muncitori straini in Romania)
-                if (cleanIban.length() < 15 || cleanIban.length() > 34) {
-                    throw new FormatDateIncorectException(
-                            "IBAN-ul pentru Bangladesh (BD) în format internațional cross-border ISO 13616 trebuie să aibă între 15 și 34 de caractere.");
-                }
-            }
-            case "CN" -> { // China (Comert international si transferuri bancare B2B)
-                if (cleanIban.length() < 15 || cleanIban.length() > 34) {
-                    throw new FormatDateIncorectException(
-                            "IBAN-ul pentru China (CN) în format internațional cross-border ISO 13616 trebuie să aibă între 15 și 34 de caractere (CN + 2 cifre de control + CNAPS + cont).");
-                }
-            }
-            case "JP" -> { // Japonia (Partener comercial si investitii)
-                if (cleanIban.length() < 15 || cleanIban.length() > 34) {
-                    throw new FormatDateIncorectException(
-                            "IBAN-ul pentru Japonia (JP) în format internațional cross-border ISO 13616 trebuie să aibă între 15 și 34 de caractere (JP + 2 cifre de control + cod Zengin + cont).");
-                }
-            }
-            case "KR" -> { // Coreea de Sud (Investitii industriale in Romania)
-                if (cleanIban.length() < 15 || cleanIban.length() > 34) {
-                    throw new FormatDateIncorectException(
-                            "IBAN-ul pentru Coreea de Sud (KR) în format internațional cross-border ISO 13616 trebuie să aibă între 15 și 34 de caractere.");
-                }
-            }
-            case "SG" -> { // Singapore (Centru financiar global)
-                if (cleanIban.length() < 15 || cleanIban.length() > 34) {
-                    throw new FormatDateIncorectException(
-                            "IBAN-ul pentru Singapore (SG) în format internațional cross-border ISO 13616 trebuie să aibă între 15 și 34 de caractere.");
-                }
-            }
-            case "HK" -> { // Hong Kong (Hub financiar)
-                if (cleanIban.length() < 15 || cleanIban.length() > 34) {
-                    throw new FormatDateIncorectException(
-                            "IBAN-ul pentru Hong Kong (HK) în format internațional cross-border ISO 13616 trebuie să aibă între 15 și 34 de caractere.");
-                }
-            }
-            case "MY" -> { // Malaezia
-                if (cleanIban.length() < 15 || cleanIban.length() > 34) {
-                    throw new FormatDateIncorectException(
-                            "IBAN-ul pentru Malaezia (MY) în format internațional cross-border ISO 13616 trebuie să aibă între 15 și 34 de caractere.");
-                }
-            }
-            case "TH" -> { // Thailanda
-                if (cleanIban.length() < 15 || cleanIban.length() > 34) {
-                    throw new FormatDateIncorectException(
-                            "IBAN-ul pentru Thailanda (TH) în format internațional cross-border ISO 13616 trebuie să aibă între 15 și 34 de caractere.");
-                }
-            }
-            case "ID" -> { // Indonezia (Comert international / forta de munca)
-                if (cleanIban.length() < 15 || cleanIban.length() > 34) {
-                    throw new FormatDateIncorectException(
-                            "IBAN-ul pentru Indonezia (ID) în format internațional cross-border ISO 13616 trebuie să aibă între 15 și 34 de caractere.");
-                }
-            }
-            case "TW" -> { // Taiwan (Sector tehnologic IT)
-                if (cleanIban.length() < 15 || cleanIban.length() > 34) {
-                    throw new FormatDateIncorectException(
-                            "IBAN-ul pentru Taiwan (TW) în format internațional cross-border ISO 13616 trebuie să aibă între 15 și 34 de caractere.");
-                }
+        if (cleanIban.length() != regula.lungimeFixa()) {
+            throw new FormatDateIncorectException(String.format(
+                    "IBAN-ul pentru %s (%s) trebuie să aibă exact %d caractere. Cel introdus are %d caractere.",
+                    regula.denumireTara(), codTara, regula.lungimeFixa(), cleanIban.length()));
+        }
+        if (regula.regex() != null && !cleanIban.matches(regula.regex())) {
+            throw new FormatDateIncorectException(String.format(
+                    "Format IBAN invalid pentru %s (%s): structura cerută este %s.",
+                    regula.denumireTara(), codTara, regula.formatAsteptat()));
+        }
+    }
+
+    // =========================================================================
+    // STANDARD WIRE / SWIFT PENTRU STATE NON-IBAN (India, China, Japonia, SUA etc.)
+    // =========================================================================
+
+    /**
+     * Specificație națională de transfer bancar prin rețeaua internațională SWIFT
+     * pentru state care în viața reală nu utilizează standardul IBAN
+     * (India, China, Japonia, SUA, Canada, Australia etc.).
+     */
+    public record SpecificatieTaraNonIban(
+            String codTara,
+            String denumireTara,
+            String bancaExemplu,
+            String swiftExemplu,
+            String denumireCodRutare,
+            String regexRutare,
+            String exempluRutare,
+            String regexCont,
+            String formatContDescriere
+    ) {}
+
+    private static final Map<String, SpecificatieTaraNonIban> SPECIFICATII_NON_IBAN = new LinkedHashMap<>();
+
+    static {
+        SPECIFICATII_NON_IBAN.put("IN", new SpecificatieTaraNonIban(
+                "IN", "India", "State Bank of India", "SBININBB",
+                "Cod filiala IFSC", "^[A-Z]{4}0[A-Z0-9]{6}$", "SBIN0001234 (11 caractere)",
+                "^[0-9]{9,18}$", "9-18 cifre numerice"));
+
+        SPECIFICATII_NON_IBAN.put("CN", new SpecificatieTaraNonIban(
+                "CN", "China", "Bank of China", "BKCHCNBJ",
+                "Cod CNAPS", "^[0-9]{12}$", "102100000010 (12 cifre)",
+                "^[0-9]{16,19}$", "16-19 cifre numerice"));
+
+        SPECIFICATII_NON_IBAN.put("JP", new SpecificatieTaraNonIban(
+                "JP", "Japonia", "MUFG Bank (Tokyo)", "BOTKJPJT",
+                "Cod Zengin (bancă + sucursală)", "^[0-9]{7}$", "0005123 (7 cifre)",
+                "^[0-9]{7}$", "exact 7 cifre numerice"));
+
+        SPECIFICATII_NON_IBAN.put("US", new SpecificatieTaraNonIban(
+                "US", "Statele Unite ale Americii", "JPMorgan Chase Bank", "CHASUS33",
+                "Cod Fedwire / Routing ABA", "^[0-9]{9}$", "021000021 (9 cifre)",
+                "^[0-9]{8,17}$", "8-17 cifre numerice"));
+
+        SPECIFICATII_NON_IBAN.put("CA", new SpecificatieTaraNonIban(
+                "CA", "Canada", "Royal Bank of Canada (RBC)", "ROYCCAT2",
+                "Număr tranzit bancar", "^[0-9]{9}$", "000312345 (9 cifre)",
+                "^[0-9]{7,12}$", "7-12 cifre numerice"));
+
+        SPECIFICATII_NON_IBAN.put("AU", new SpecificatieTaraNonIban(
+                "AU", "Australia", "ANZ Bank", "ANZBAU3M",
+                "Cod BSB (Bank-State-Branch)", "^[0-9]{6}$", "062000 (6 cifre)",
+                "^[0-9]{6,10}$", "6-10 cifre numerice"));
+
+        SPECIFICATII_NON_IBAN.put("NZ", new SpecificatieTaraNonIban(
+                "NZ", "Noua Zeelandă", "ANZ Bank New Zealand", "ANZBNZ22",
+                "Cod bancă / sucursală", "^[0-9]{6}$", "010001 (6 cifre)",
+                "^[0-9]{7,8}$", "7-8 cifre numerice"));
+
+        SPECIFICATII_NON_IBAN.put("KR", new SpecificatieTaraNonIban(
+                "KR", "Coreea de Sud", "Kookmin Bank", "CZNBKRSE",
+                null, null, null,
+                "^[0-9]{11,16}$", "11-16 cifre numerice"));
+
+        SPECIFICATII_NON_IBAN.put("SG", new SpecificatieTaraNonIban(
+                "SG", "Singapore", "DBS Bank", "DBSSSGSG",
+                "Cod bancă / sucursală", "^[0-9]{7}$", "7171001 (7 cifre)",
+                "^[0-9]{9,12}$", "9-12 cifre numerice"));
+
+        SPECIFICATII_NON_IBAN.put("HK", new SpecificatieTaraNonIban(
+                "HK", "Hong Kong", "HSBC Hong Kong", "HSBCHKHH",
+                "Cod Clearing / Branch", "^[0-9]{6}$", "004123 (6 cifre)",
+                "^[0-9]{9,12}$", "9-12 cifre numerice"));
+
+        SPECIFICATII_NON_IBAN.put("MX", new SpecificatieTaraNonIban(
+                "MX", "Mexic", "BBVA Mexico", "BCMRMXMM",
+                "Cod CLABE național", "^[0-9]{18}$", "012180001234567890 (18 cifre)",
+                "^[0-9]{10,18}$", "10-18 cifre numerice"));
+
+        SPECIFICATII_NON_IBAN.put("AR", new SpecificatieTaraNonIban(
+                "AR", "Argentina", "Banco Santander Rio", "BSASARBA",
+                "Cod CBU bancar", "^[0-9]{22}$", "0720000000000000123456 (22 cifre)",
+                "^[0-9]{10,22}$", "10-22 cifre numerice"));
+
+        SPECIFICATII_NON_IBAN.put("VN", new SpecificatieTaraNonIban(
+                "VN", "Vietnam", "Vietcombank", "BFTVVNVX",
+                null, null, null,
+                "^[0-9]{10,20}$", "10-20 cifre numerice"));
+
+        SPECIFICATII_NON_IBAN.put("PH", new SpecificatieTaraNonIban(
+                "PH", "Filipine", "BDO Unibank", "BNORPHMM",
+                null, null, null,
+                "^[0-9]{10,16}$", "10-16 cifre numerice"));
+
+        SPECIFICATII_NON_IBAN.put("ID", new SpecificatieTaraNonIban(
+                "ID", "Indonezia", "Bank Mandiri", "BMRIIDJA",
+                null, null, null,
+                "^[0-9]{10,16}$", "10-16 cifre numerice"));
+
+        SPECIFICATII_NON_IBAN.put("TH", new SpecificatieTaraNonIban(
+                "TH", "Thailanda", "Bangkok Bank", "BKKBTHTH",
+                null, null, null,
+                "^[0-9]{10,15}$", "10-15 cifre numerice"));
+
+        SPECIFICATII_NON_IBAN.put("MY", new SpecificatieTaraNonIban(
+                "MY", "Malaezia", "Maybank", "MBBEMYKL",
+                null, null, null,
+                "^[0-9]{10,16}$", "10-16 cifre numerice"));
+
+        SPECIFICATII_NON_IBAN.put("TW", new SpecificatieTaraNonIban(
+                "TW", "Taiwan", "Bank of Taiwan", "BKTWTWTP",
+                null, null, null,
+                "^[0-9]{10,16}$", "10-16 cifre numerice"));
+
+        SPECIFICATII_NON_IBAN.put("NP", new SpecificatieTaraNonIban(
+                "NP", "Nepal", "Nepal Bank", "NEBLNPKA",
+                null, null, null,
+                "^[0-9]{10,16}$", "10-16 cifre numerice"));
+
+        SPECIFICATII_NON_IBAN.put("BD", new SpecificatieTaraNonIban(
+                "BD", "Bangladesh", "Sonali Bank", "SONBBDDH",
+                null, null, null,
+                "^[0-9]{10,17}$", "10-17 cifre numerice"));
+
+        SPECIFICATII_NON_IBAN.put("LK", new SpecificatieTaraNonIban(
+                "LK", "Sri Lanka", "Bank of Ceylon", "BCEYLKLX",
+                null, null, null,
+                "^[0-9]{10,16}$", "10-16 cifre numerice"));
+    }
+
+    public static SpecificatieTaraNonIban getSpecificatieNonIban(String codTara) {
+        return (codTara != null) ? SPECIFICATII_NON_IBAN.get(codTara.toUpperCase()) : null;
+    }
+
+    public static Map<String, SpecificatieTaraNonIban> getToateSpecificatiileNonIban() {
+        return Collections.unmodifiableMap(SPECIFICATII_NON_IBAN);
+    }
+
+    /**
+     * Validează formatul unui cod SWIFT/BIC conform standardului internațional ISO 9362
+     * și verifică dacă include indicativul țării corespunzătoare.
+     *
+     * @param codSwift codul SWIFT introdus (8 sau 11 caractere)
+     * @param codTaraAsteptat codul ISO al țării (ex: IN, CN, JP, US) sau null dacă nu este impus
+     * @throws FormatDateIncorectException dacă formatul nu respectă ISO 9362 sau codul de țară nu coincide
+     */
+    public void valideazaCodSwift(String codSwift, String codTaraAsteptat) throws FormatDateIncorectException {
+        if (codSwift == null) {
+            throw new FormatDateIncorectException("Codul SWIFT/BIC nu poate fi nul.");
+        }
+        String cleanSwift = codSwift.trim().toUpperCase().replaceAll("\\s+", "");
+
+        // ISO 9362: 4 litere banca + 2 litere tara + 2 alfanumerice locatie + optional 3 filiala
+        if (!cleanSwift.matches("^[A-Z]{4}[A-Z]{2}[A-Z0-9]{2}([A-Z0-9]{3})?$")) {
+            throw new FormatDateIncorectException(
+                    "Cod SWIFT/BIC invalid conform ISO 9362. Trebuie să conțină 8 sau 11 caractere (ex: SBININBB sau SBININBBXXX).");
+        }
+
+        if (codTaraAsteptat != null && !codTaraAsteptat.trim().isEmpty()) {
+            String taraInSwift = cleanSwift.substring(4, 6);
+            if (!taraInSwift.equalsIgnoreCase(codTaraAsteptat.trim())) {
+                throw new FormatDateIncorectException(String.format(
+                        "Inconsecvență cod SWIFT: Codul introdus conține indicativul de țară '%s' la pozițiile 5-6, dar țara destinație este '%s'.",
+                        taraInSwift, codTaraAsteptat.toUpperCase()));
             }
         }
+    }
+
+    /**
+     * Efectuează un transfer internațional către state din afara spațiului IBAN
+     * (India, China, Japonia, SUA, Canada, Australia etc.), folosind codul SWIFT (dacă banca îl deține)
+     * sau direct codurile bancare naționale de rutare și numărul de cont.
+     *
+     * @param ibanSursa contul sursă din bancă
+     * @param codTara codul ISO al țării destinație (2 litere, ex: IN, CN, JP, US)
+     * @param codSwift codul SWIFT/BIC al băncii beneficiare (opțional, dacă banca nu este membră SWIFT)
+     * @param codRutare codul național de rutare (IFSC pt India, Routing pt SUA, Zengin pt Japonia etc., opțional)
+     * @param numarCont numărul de cont al beneficiarului
+     * @param numeBeneficiar numele complet al titularului contului beneficiar
+     * @param suma suma transferată
+     * @param descriere detalii sau explicație plată (opțional)
+     * @return tranzacția finalizată
+     * @throws BancarException dacă datele sunt invalide sau fondurile sunt insuficiente
+     */
+    public Tranzactie efectueazaTransferInternationalNonIban(
+            String ibanSursa,
+            String codTara,
+            String codSwift,
+            String codRutare,
+            String numarCont,
+            String numeBeneficiar,
+            double suma,
+            String descriere) throws BancarException {
+
+        if (codTara == null || codTara.trim().length() != 2) {
+            throw new FormatDateIncorectException("Cod de țară invalid: codul ISO trebuie să conțină exact 2 litere (ex: IN, CN, JP, US).");
+        }
+        String cleanTara = codTara.trim().toUpperCase();
+
+        SpecificatieTaraNonIban spec = getSpecificatieNonIban(cleanTara);
+        if (spec == null) {
+            throw new FormatDateIncorectException(String.format(
+                    "Cod de țară invalid: codul '%s' nu există în evidențele băncii.", cleanTara));
+        }
+
+        if (numeBeneficiar == null || numeBeneficiar.trim().length() < 2) {
+            throw new FormatDateIncorectException("Numele beneficiarului trebuie să aibă minimum 2 caractere.");
+        }
+
+        if (codSwift != null && !codSwift.trim().isEmpty()) {
+            valideazaCodSwift(codSwift, cleanTara);
+        }
+
+        String cleanCont = numarCont != null ? numarCont.trim().replaceAll("\\s+", "") : "";
+
+        if (cleanCont.isEmpty()) {
+            throw new FormatDateIncorectException("Numărul de cont bancar al beneficiarului nu poate fi gol.");
+        }
+
+        if (spec.regexCont() != null && !cleanCont.matches(spec.regexCont())) {
+            throw new FormatDateIncorectException(String.format(
+                    "Număr de cont invalid pentru %s (%s). Formatul cerut este %s.",
+                    spec.denumireTara(), cleanTara, spec.formatContDescriere()));
+        }
+        if (spec.regexRutare() != null && codRutare != null && !codRutare.trim().isEmpty()) {
+            String cleanRutare = codRutare.trim().toUpperCase().replaceAll("\\s+", "");
+            if (!cleanRutare.matches(spec.regexRutare())) {
+                throw new FormatDateIncorectException(String.format(
+                        "Cod de rutare (%s) invalid pentru %s. Structura cerută este %s.",
+                        spec.denumireCodRutare(), spec.denumireTara(), spec.exempluRutare()));
+            }
+        }
+
+        String denumireTara = spec != null ? spec.denumireTara() : cleanTara;
+        String cleanSwift = (codSwift != null && !codSwift.trim().isEmpty()) ? codSwift.trim().toUpperCase() : "NON-SWIFT";
+        String identificatorDest = "NON-IBAN-" + cleanTara + "-" + cleanSwift + "-" + cleanCont;
+
+        StringBuilder sbDesc = new StringBuilder();
+        sbDesc.append("Transfer internațional non-IBAN (").append(denumireTara).append(") -> ").append(numeBeneficiar.trim());
+        sbDesc.append(" [");
+        if (!cleanSwift.equals("NON-SWIFT")) {
+            sbDesc.append("SWIFT: ").append(cleanSwift).append(", ");
+        }
+        if (codRutare != null && !codRutare.trim().isEmpty()) {
+            String etichetaRutare = (spec != null && spec.denumireCodRutare() != null) ? spec.denumireCodRutare() : "Rutare";
+            sbDesc.append(etichetaRutare).append(": ").append(codRutare.trim().toUpperCase()).append(", ");
+        }
+        sbDesc.append("Cont: ").append(cleanCont).append("]");
+        if (descriere != null && !descriere.trim().isEmpty()) {
+            sbDesc.append(" - ").append(descriere.trim());
+        }
+
+        return efectueazaTransfer(ibanSursa, identificatorDest, suma, sbDesc.toString());
+    }
+
+    public Tranzactie efectueazaTransferInternationalWire(
+            String ibanSursa,
+            String codTara,
+            String codSwift,
+            String codRutare,
+            String numarCont,
+            String numeBeneficiar,
+            double suma,
+            String descriere) throws BancarException {
+        return efectueazaTransferInternationalNonIban(ibanSursa, codTara, codSwift, codRutare, numarCont, numeBeneficiar, suma, descriere);
     }
 
     public void valideazaClient(Client client) throws FormatDateIncorectException {
